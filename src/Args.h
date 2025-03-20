@@ -20,13 +20,13 @@ public:
     template<typename T>
     bool has(const std::string& key) const;
 
-    template<typename T, typename std::enable_if<!std::is_trivial_v<T>>::type* = nullptr>
+    template<typename T, typename std::enable_if_t<!std::is_trivial_v<T>>* = nullptr>
     T value(const std::string& key, const T& defaultValue = T()) const;
 
-    template<typename T, typename std::enable_if<std::is_trivial_v<T> && !std::is_floating_point_v<T>>::type* = nullptr>
+    template<typename T, typename std::enable_if_t<std::is_trivial_v<T> && !std::is_floating_point_v<T>>* = nullptr>
     T value(const std::string& key, T defaultValue = T()) const;
 
-    template<typename T, typename std::enable_if<std::is_trivial_v<T> && std::is_floating_point_v<T>>::type* = nullptr>
+    template<typename T, typename std::enable_if_t<std::is_trivial_v<T> && std::is_floating_point_v<T>>* = nullptr>
     T value(const std::string& key, T defaultValue = T()) const;
 
     std::size_t freeformSize() const;
@@ -78,7 +78,7 @@ inline bool Args::has(const std::string& key) const
     return false;
 }
 
-template<typename T, typename std::enable_if<!std::is_trivial_v<T>>::type*>
+template<typename T, typename std::enable_if_t<!std::is_trivial_v<T>>*>
 inline T Args::value(const std::string& key, const T& defaultValue) const
 {
     auto v = mValues.find(key);
@@ -89,7 +89,7 @@ inline T Args::value(const std::string& key, const T& defaultValue) const
     return defaultValue;
 }
 
-template<typename T, typename std::enable_if<std::is_trivial_v<T> && !std::is_floating_point_v<T>>::type*>
+template<typename T, typename std::enable_if_t<std::is_trivial_v<T> && !std::is_floating_point_v<T>>*>
 inline T Args::value(const std::string& key, T defaultValue) const
 {
     auto v = mValues.find(key);
@@ -106,7 +106,7 @@ inline T Args::value(const std::string& key, T defaultValue) const
     return defaultValue;
 }
 
-template<typename T, typename std::enable_if<std::is_trivial_v<T> && std::is_floating_point_v<T>>::type*>
+template<typename T, typename std::enable_if_t<std::is_trivial_v<T> && std::is_floating_point_v<T>>*>
 inline T Args::value(const std::string& key, T defaultValue) const
 {
     auto v = mValues.find(key);
