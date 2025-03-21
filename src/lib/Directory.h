@@ -2,6 +2,7 @@
 
 //#include "DirectoryIterator.h"
 #include "Entry.h"
+#include "Format.h"
 #include <Flags.h>
 #include <Result.h>
 #include <filesystem>
@@ -30,7 +31,8 @@ public:
     virtual Result<void> rename(std::filesystem::path oldName, std::filesystem::path newName) = 0;
     virtual Result<File> open(std::filesystem::path name, OpenMode mode) = 0;
 
-    static std::unique_ptr<Directory> root(std::filesystem::path path);
+    static Result<std::unique_ptr<Directory>> root(std::filesystem::path path, Format format = Format::Auto);
+    static Result<std::unique_ptr<Directory>> create(std::filesystem::path path, std::size_t size, Format format = Format::Auto);
 
     // DirectoryIterator begin();
     // DirectoryIterator end();
