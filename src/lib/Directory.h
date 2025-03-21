@@ -5,6 +5,7 @@
 #include <Flags.h>
 #include <Result.h>
 #include <filesystem>
+#include <memory>
 #include <vector>
 
 class Entry;

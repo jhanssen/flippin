@@ -2,6 +2,8 @@
 
 #include <Result.h>
 #include <limits>
+#include <vector>
+#include <cstddef>
 #include <cstdint>
 
 class Entry;
