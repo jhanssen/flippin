@@ -1,7 +1,5 @@
-set(SOURCES
-    main.cpp
-)
+set(CMAKE_CXX_STANDARD 23)
 
-add_executable(flippy ${SOURCES})
-target_link_libraries(flippy llfat fmt::fmt)
-target_compile_features(flippy PRIVATE cxx_std_20)
+add_subdirectory(common)
+add_subdirectory(lib)
+add_subdirectory(cli)

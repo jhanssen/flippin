@@ -1,6 +1,7 @@
 #pragma once
 
 #include <any>
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstring>
