@@ -4,6 +4,8 @@
 #include <variant>
 #include <cassert>
 
+namespace flippy {
+
 class File;
 class Directory;
 
@@ -50,3 +52,5 @@ public:
 private:
     std::variant<std::unique_ptr<File>, std::unique_ptr<Directory>> mEntry;
 };
+
+} // namespace flippy

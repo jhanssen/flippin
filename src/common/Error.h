@@ -2,6 +2,8 @@
 
 #include <string>
 
+namespace flippy {
+
 class Error
 {
 public:
@@ -16,3 +18,5 @@ public:
 private:
     std::string mMessage;
 };
+
+} // namespace flippy

@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <cstdint>
 
+namespace flippy {
+
 class Entry;
 class Directory;
 
@@ -25,3 +27,5 @@ private:
     friend class Entry;
     friend class Directory;
 };
+
+} // namespace flippy

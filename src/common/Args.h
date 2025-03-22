@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <vector>
 
+namespace flippy {
+
 class ArgsParser;
 
 class Args
@@ -345,3 +347,5 @@ inline Args ArgsParser::parse(int argc, char** argv, char** envp, const char* en
 
     return args;
 }
+
+} // namespace flippy

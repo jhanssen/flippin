@@ -1,6 +1,8 @@
 #include "Args.h"
 #include <fmt/format.h>
 
+using namespace flippy;
+
 int main(int argc, char** argv, char** envp)
 {
     const auto args = ArgsParser::parse(
