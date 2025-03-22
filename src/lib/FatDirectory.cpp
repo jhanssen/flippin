@@ -83,7 +83,7 @@ std::vector<Entry> FatDirectory::buildEntries(unit* startDir, int startIndex) co
             entries.push_back(Entry(std::shared_ptr<FatDirectory>(new FatDirectory(mFat, std::filesystem::path(shortname), mTarget))));
         } else if (!(attrs & FAT_ATTR_VOLUME)) {
             // file
-            entries.push_back(Entry(std::shared_ptr<FatFile>(new FatFile(mFat, dir, index))));
+            entries.push_back(Entry(std::shared_ptr<FatFile>(new FatFile(mFat, std::filesystem::path(shortname), dir, index))));
         }
     }
 

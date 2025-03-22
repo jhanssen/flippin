@@ -21,6 +21,7 @@ public:
 
     virtual ~Directory() = 0;
 
+    virtual Result<std::filesystem::path> path() const = 0;
     virtual Result<std::vector<Entry>> ls() const = 0;
     virtual Result<void> chdir(std::filesystem::path name) = 0;
     virtual Result<void> mkdir(std::filesystem::path name) = 0;
@@ -28,7 +29,6 @@ public:
     virtual Result<void> copy(std::filesystem::path name) = 0;
     virtual Result<void> rename(std::filesystem::path oldName, std::filesystem::path newName) = 0;
     virtual Result<std::shared_ptr<File>> open(std::filesystem::path name, OpenMode mode) = 0;
-    virtual Result<std::filesystem::path> path() const = 0;
 
 protected:
     Directory() { }

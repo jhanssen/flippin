@@ -21,42 +21,51 @@ public:
     Entry& operator=(Entry&&) = default;
     Entry& operator=(const Entry&) = delete;
 
-    bool isFile() const
-    {
-        return std::holds_alternative<std::shared_ptr<File>>(mEntry);
-    }
+    bool isFile() const;
+    bool isDirectory() const;
 
-    bool isDirectory() const
-    {
-        return std::holds_alternative<std::shared_ptr<Directory>>(mEntry);
-    }
+    File* asFile() const;
+    Directory* asDirectory() const;
 
-    File* asFile()
-    {
-        assert(isFile());
-        return std::get<std::shared_ptr<File>>(mEntry).get();
-    }
-
-    Directory* asDirectory()
-    {
-        assert(isDirectory());
-        return std::get<std::shared_ptr<Directory>>(mEntry).get();
-    }
-
-    std::shared_ptr<File> acquireFile()
-    {
-        assert(isFile());
-        return std::move(std::get<std::shared_ptr<File>>(mEntry));
-    }
-
-    std::shared_ptr<Directory> acquireDirectory()
-    {
-        assert(isDirectory());
-        return std::move(std::get<std::shared_ptr<Directory>>(mEntry));
-    }
+    std::shared_ptr<File> acquireFile();
+    std::shared_ptr<Directory> acquireDirectory();
 
 private:
     std::variant<std::shared_ptr<File>, std::shared_ptr<Directory>> mEntry;
 };
+
+inline bool Entry::isFile() const
+{
+    return std::holds_alternative<std::shared_ptr<File>>(mEntry);
+}
+
+inline bool Entry::isDirectory() const
+{
+    return std::holds_alternative<std::shared_ptr<Directory>>(mEntry);
+}
+
+inline File* Entry::asFile() const
+{
+    assert(isFile());
+    return std::get<std::shared_ptr<File>>(mEntry).get();
+}
+
+inline Directory* Entry::asDirectory() const
+{
+    assert(isDirectory());
+    return std::get<std::shared_ptr<Directory>>(mEntry).get();
+}
+
+inline std::shared_ptr<File> Entry::acquireFile()
+{
+    assert(isFile());
+    return std::move(std::get<std::shared_ptr<File>>(mEntry));
+}
+
+inline std::shared_ptr<Directory> Entry::acquireDirectory()
+{
+    assert(isDirectory());
+    return std::move(std::get<std::shared_ptr<Directory>>(mEntry));
+}
 
 } // namespace flippy

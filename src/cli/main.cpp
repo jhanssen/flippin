@@ -1,6 +1,9 @@
 #include "Args.h"
+#include <File.h>
 #include <Filesystem.h>
+#include <Directory.h>
 #include <fmt/format.h>
+#include <fmt/std.h>
 
 using namespace flippy;
 
@@ -15,11 +18,25 @@ int main(int argc, char** argv, char** envp)
         fmt::print(stderr, "Flippy: missing image name\n");
         return 1;
     }
+    fmt::print("Flippy: opening image '{}'\n", args.freeformValue(0));
     const auto& imageName = args.freeformValue(0);
-    auto fs = Filesystem::root(imageName);
-    if (!fs) {
-        fmt::print(stderr, "Flippy: cannot open image '{}': {}\n", imageName, fs.error().message());
+    auto maybefs = Filesystem::root(imageName);
+    if (!maybefs.has_value()) {
+        fmt::print(stderr, "Flippy: cannot open image '{}': {}\n", imageName, maybefs.error().message());
         return 1;
+    }
+    auto fs = std::move(maybefs).value();
+    auto maybeentries = fs->ls();
+    if (!maybeentries.has_value()) {
+        fmt::print(stderr, "Flippy: cannot list entries: {}\n", maybeentries.error().message());
+        return 1;
+    }
+    for (const auto& entry : maybeentries.value()) {
+        if (entry.isFile()) {
+            fmt::print("File '{}'\n", entry.asFile()->path().value());
+        } else if (entry.isDirectory()) {
+            fmt::print("Directory\n");
+        }
     }
     return 0;
 }
