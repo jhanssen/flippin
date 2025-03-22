@@ -2,6 +2,7 @@ set(SOURCES
     Directory.cpp
     Entry.cpp
     File.cpp
+    Filesystem.cpp
 )
 
 add_library(flippy_lib STATIC ${SOURCES})
