@@ -15,6 +15,12 @@ public:
     Entry(std::variant<std::unique_ptr<File>, std::unique_ptr<Directory>>&& entry);
     ~Entry();
 
+    Entry(Entry&&) = default;
+    Entry(const Entry&) = delete;
+
+    Entry& operator=(Entry&&) = default;
+    Entry& operator=(const Entry&) = delete;
+
     bool isFile() const
     {
         return std::holds_alternative<std::unique_ptr<File>>(mEntry);

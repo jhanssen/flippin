@@ -1,6 +1,8 @@
 set(SOURCES
     Directory.cpp
     Entry.cpp
+    FatDirectory.cpp
+    FatFile.cpp
     File.cpp
     Filesystem.cpp
 )
@@ -8,4 +10,4 @@ set(SOURCES
 add_library(flippy_lib STATIC ${SOURCES})
 add_library(Flippy::Lib ALIAS flippy_lib)
 target_include_directories(flippy_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-target_link_libraries(flippy_lib PRIVATE Flippy::Common)
+target_link_libraries(flippy_lib PRIVATE Flippy::Common llfat fmt::fmt)

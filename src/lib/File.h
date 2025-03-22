@@ -21,9 +21,10 @@ public:
     virtual Result<std::size_t> write(std::size_t offset, const std::vector<uint8_t>& data) = 0;
     virtual Result<void> close() = 0;
 
-private:
+protected:
     File() { }
 
+private:
     friend class Entry;
     friend class Directory;
 };

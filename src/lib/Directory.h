@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "DirectoryIterator.h"
+#include "DirectoryIterator.h"
 #include "Entry.h"
 #include <Flags.h>
 #include <Result.h>
@@ -9,9 +9,6 @@
 #include <vector>
 
 namespace flippy {
-
-class Entry;
-class File;
 
 class Directory
 {
@@ -30,22 +27,15 @@ public:
     virtual Result<void> rm(std::filesystem::path name) = 0;
     virtual Result<void> copy(std::filesystem::path name) = 0;
     virtual Result<void> rename(std::filesystem::path oldName, std::filesystem::path newName) = 0;
-    virtual Result<File> open(std::filesystem::path name, OpenMode mode) = 0;
+    virtual Result<std::unique_ptr<File>> open(std::filesystem::path name, OpenMode mode) = 0;
+    virtual Result<std::filesystem::path> path() const = 0;
 
-    // DirectoryIterator begin();
-    // DirectoryIterator end();
-    // DirectoryConstIterator begin() const;
-    // DirectoryConstIterator end() const;
-    // DirectoryConstIterator cbegin();
-    // DirectoryConstIterator cend();
-
-private:
+protected:
     Directory() { }
 
 private:
-    // friend class DirectoryIterator;
-    // friend class DirectoryConstIterator;
     friend class Entry;
+    friend class Filesystem;
 };
 
 template<>
@@ -53,5 +43,8 @@ struct FlagTraits<Directory::OpenMode>
 {
     static constexpr bool isBitmask = true;
 };
+
+using EntryIterator = EntryIteratorBase<Directory>;
+using EntryRange = EntryRangeBase<Directory>;
 
 } // namespace flippy
