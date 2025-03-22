@@ -1,6 +1,8 @@
 #include "Filesystem.h"
 #include "FatDirectory.h"
+extern "C" {
 #include <llfat.h>
+}
 
 namespace flippy {
 
@@ -14,7 +16,7 @@ static inline Format formatFromPath(std::filesystem::path path)
     return Format::Auto;
 }
 
-Result<std::unique_ptr<Directory>> Filesystem::root(std::filesystem::path path, Format format)
+Result<std::shared_ptr<Directory>> Filesystem::root(std::filesystem::path path, Format format)
 {
     // open existing file
     if (format == Format::Auto) {
@@ -44,10 +46,10 @@ Result<std::unique_ptr<Directory>> Filesystem::root(std::filesystem::path path, 
         free(filename);
         return std::unexpected(Error("Invalid FAT filesystem"));
     }
-    return std::make_unique<FatDirectory>(std::make_shared<FatFat>(f));
+    return std::make_shared<FatDirectory>(std::make_shared<FatFat>(f));
 }
 
-Result<std::unique_ptr<Directory>> Filesystem::create(std::filesystem::path path, std::size_t size, Format format)
+Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path, std::size_t size, Format format)
 {
     // create new file
 }

@@ -1,7 +1,9 @@
 #pragma once
 
-#include <llfat.h>
 #include <cstdlib>
+extern "C" {
+#include <llfat.h>
+}
 
 namespace flippy {
 

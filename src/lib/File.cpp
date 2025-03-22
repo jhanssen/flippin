@@ -2,4 +2,8 @@
 
 namespace flippy {
 
+File::~File()
+{
+}
+
 } // namespace flippy

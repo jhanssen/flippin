@@ -80,10 +80,10 @@ std::vector<Entry> FatDirectory::buildEntries(unit* startDir, int startIndex) co
 
         if (attrs & FAT_ATTR_DIR) {
             // directory
-            entries.push_back(Entry(std::unique_ptr<FatDirectory>(new FatDirectory(mFat, std::filesystem::path(shortname), mTarget))));
+            entries.push_back(Entry(std::shared_ptr<FatDirectory>(new FatDirectory(mFat, std::filesystem::path(shortname), mTarget))));
         } else if (!(attrs & FAT_ATTR_VOLUME)) {
             // file
-            entries.push_back(Entry(std::unique_ptr<FatFile>(new FatFile(mFat, dir, index))));
+            entries.push_back(Entry(std::shared_ptr<FatFile>(new FatFile(mFat, dir, index))));
         }
     }
 
@@ -118,7 +118,7 @@ Result<void> FatDirectory::rename(std::filesystem::path oldName, std::filesystem
 {
 }
 
-Result<std::unique_ptr<File>> FatDirectory::open(std::filesystem::path name, OpenMode mode)
+Result<std::shared_ptr<File>> FatDirectory::open(std::filesystem::path name, OpenMode mode)
 {
 }
 

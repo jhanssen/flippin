@@ -3,7 +3,9 @@
 #include "FatFat.h"
 #include "File.h"
 #include <memory>
+extern "C" {
 #include <llfat.h>
+}
 
 namespace flippy {
 

@@ -4,7 +4,9 @@
 #include "FatFat.h"
 #include <memory>
 #include <cstdint>
+extern "C" {
 #include <llfat.h>
+}
 
 namespace flippy {
 
@@ -20,7 +22,7 @@ public:
     virtual Result<void> rm(std::filesystem::path name) override;
     virtual Result<void> copy(std::filesystem::path name) override;
     virtual Result<void> rename(std::filesystem::path oldName, std::filesystem::path newName) override;
-    virtual Result<std::unique_ptr<File>> open(std::filesystem::path name, OpenMode mode) override;
+    virtual Result<std::shared_ptr<File>> open(std::filesystem::path name, OpenMode mode) override;
     virtual Result<std::filesystem::path> path() const override;
 
 private:

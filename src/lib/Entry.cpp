@@ -4,7 +4,7 @@
 
 namespace flippy {
 
-Entry::Entry(std::variant<std::unique_ptr<File>, std::unique_ptr<Directory>>&& entry)
+Entry::Entry(std::variant<std::shared_ptr<File>, std::shared_ptr<Directory>>&& entry)
     : mEntry(std::move(entry))
 {
 }
