@@ -32,6 +32,7 @@ private:
 private:
     std::shared_ptr<FatFat> mFat;
     int32_t mTarget, mFirst, mLast;
+    std::filesystem::path mPath;
     unit* mDirectory = nullptr;
     int mIndex = 0;
 };

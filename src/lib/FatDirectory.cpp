@@ -7,7 +7,7 @@
 namespace flippy {
 
 FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat)
-    : mFat(std::move(fat))
+    : mFat(std::move(fat)), mPath(u8"/")
 {
     mTarget = fatgetrootbegin(mFat->f);
     mFirst = FAT_FIRST;
@@ -27,7 +27,7 @@ FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat)
 }
 
 FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat, const std::filesystem::path& path, int32_t target)
-    : mFat(std::move(fat))
+    : mFat(std::move(fat)), mPath(path.u8string() + u8'/')
 {
     mTarget = (target == FAT_ERR) ? fatgetrootbegin(mFat->f) : target;
     mFirst = FAT_FIRST;
@@ -124,6 +124,7 @@ Result<std::unique_ptr<File>> FatDirectory::open(std::filesystem::path name, Ope
 
 Result<std::filesystem::path> FatDirectory::path() const
 {
+    return mPath;
 }
 
 } // namespace flippy
