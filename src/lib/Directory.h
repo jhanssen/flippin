@@ -21,7 +21,8 @@ public:
 
     virtual ~Directory() = 0;
 
-    virtual Result<std::filesystem::path> path() const = 0;
+    virtual Result<std::filesystem::path> shortPath() const = 0;
+    virtual Result<std::filesystem::path> longPath() const = 0;
     virtual Result<std::vector<Entry>> ls() const = 0;
     virtual Result<void> chdir(std::filesystem::path name) = 0;
     virtual Result<void> mkdir(std::filesystem::path name) = 0;

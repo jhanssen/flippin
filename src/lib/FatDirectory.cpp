@@ -7,7 +7,7 @@
 namespace flippy {
 
 FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat)
-    : mFat(std::move(fat)), mPath(u8"/")
+    : mFat(std::move(fat)), mShort(u8"/")
 {
     mTarget = fatgetrootbegin(mFat->f);
     mFirst = FAT_FIRST;
@@ -26,8 +26,8 @@ FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat)
     mIndex = 0;
 }
 
-FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat, const std::filesystem::path& path, int32_t target)
-    : mFat(std::move(fat)), mPath(path.u8string() + u8'/')
+FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat, std::filesystem::path shortp, std::filesystem::path longp, int32_t target)
+    : mFat(std::move(fat)), mShort(shortp.u8string() + u8'/'), mLong(longp.u8string() + u8'/')
 {
     mTarget = (target == FAT_ERR) ? fatgetrootbegin(mFat->f) : target;
     mFirst = FAT_FIRST;
@@ -37,11 +37,11 @@ FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat, const std::filesystem::p
         return;
     }
 
-    if (fatinvalidpath(path.c_str()) < 0) {
+    if (fatinvalidpath(mShort.c_str()) < 0) {
         return;
     }
 
-    auto npath = fatstoragepath(path.c_str());
+    auto npath = fatstoragepath(mShort.c_str());
 
     unit* directory = nullptr;
     int index = 0;
@@ -67,23 +67,39 @@ std::vector<Entry> FatDirectory::buildEntries(unit* startDir, int startIndex) co
 {
     std::vector<Entry> entries;
 
-    int32_t index, res;
+    int32_t index;
     unit* dir = startDir;
-    for (index = startIndex, res = 0; res == 0; res = fatnextentry(mFat->f, &dir, &index)) {
+    unit* longdir;
+    int longindex;
+    char* name;
+    int res;
+    for (index = startIndex; (res = fatlongnext(mFat->f, &dir, &index, &longdir, &longindex, &name)) != FAT_END; fatnextentry(mFat->f, &dir, &index)) {
         if (!fatentryexists(dir, index)) {
             continue;
         }
 
-        char shortname[13];
-        fatshortnametostring(shortname, &ENTRYPOS(dir, index, 0));
+        std::filesystem::path shortname, longname;
+        if (res & FAT_LONG_ALL) {
+            longname = name;
+
+            char shortnamebuf[13];
+            fatshortnametostring(shortnamebuf, &ENTRYPOS(dir, index, 0));
+
+            shortname = shortnamebuf;
+        } else {
+            assert(res & FAT_SHORT);
+            shortname = name;
+        }
+        free(name);
+
         const auto attrs = fatentrygetattributes(dir, index);
 
         if (attrs & FAT_ATTR_DIR) {
             // directory
-            entries.push_back(Entry(std::shared_ptr<FatDirectory>(new FatDirectory(mFat, std::filesystem::path(shortname), mTarget))));
+            entries.push_back(Entry(std::shared_ptr<FatDirectory>(new FatDirectory(mFat, std::move(shortname), std::move(longname), mTarget))));
         } else if (!(attrs & FAT_ATTR_VOLUME)) {
             // file
-            entries.push_back(Entry(std::shared_ptr<FatFile>(new FatFile(mFat, std::filesystem::path(shortname), dir, index))));
+            entries.push_back(Entry(std::shared_ptr<FatFile>(new FatFile(mFat, std::move(shortname), std::move(longname), dir, index))));
         }
     }
 
@@ -122,9 +138,14 @@ Result<std::shared_ptr<File>> FatDirectory::open(std::filesystem::path name, Ope
 {
 }
 
-Result<std::filesystem::path> FatDirectory::path() const
+Result<std::filesystem::path> FatDirectory::shortPath() const
 {
-    return mPath;
+    return mShort;
+}
+
+Result<std::filesystem::path> FatDirectory::longPath() const
+{
+    return mLong.empty() ? mShort : mLong;
 }
 
 } // namespace flippy

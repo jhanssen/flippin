@@ -33,9 +33,9 @@ int main(int argc, char** argv, char** envp)
     }
     for (const auto& entry : maybeentries.value()) {
         if (entry.isFile()) {
-            fmt::print("File '{}'\n", entry.asFile()->path().value());
+            fmt::print("File '{}'\n", entry.asFile()->longPath().value());
         } else if (entry.isDirectory()) {
-            fmt::print("Directory\n");
+            fmt::print("Directory '{}'\n", entry.asDirectory()->longPath().value());
         }
     }
     return 0;

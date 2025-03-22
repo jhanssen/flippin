@@ -2,8 +2,8 @@
 
 namespace flippy {
 
-FatFile::FatFile(std::shared_ptr<FatFat> fat, const std::filesystem::path& path, unit* directory, int index)
-    : mFat(std::move(fat)), mPath(path), mDirectory(directory), mIndex(index)
+FatFile::FatFile(std::shared_ptr<FatFat> fat, std::filesystem::path shortp, std::filesystem::path longp, unit* directory, int index)
+    : mFat(std::move(fat)), mShort(std::move(shortp)), mLong(std::move(longp)), mDirectory(directory), mIndex(index)
 {
 }
 
@@ -11,9 +11,14 @@ FatFile::~FatFile()
 {
 }
 
-Result<std::filesystem::path> FatFile::path() const
+Result<std::filesystem::path> FatFile::shortPath() const
 {
-    return mPath;
+    return mShort;
+}
+
+Result<std::filesystem::path> FatFile::longPath() const
+{
+    return mLong.empty() ? mShort : mLong;
 }
 
 Result<std::size_t> FatFile::size() const
