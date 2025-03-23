@@ -121,10 +121,6 @@ Result<std::vector<Entry>> FatDirectory::dir() const
     return buildEntries(mDirectory, mIndex);
 }
 
-Result<void> FatDirectory::chdir(std::filesystem::path name)
-{
-}
-
 Result<void> FatDirectory::mkdirShort(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists)
 {
     unit* dir;
@@ -361,6 +357,27 @@ Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path nam
     return FatEntry { dir, longdir, index, longindex, created, std::move(shortname), std::move(longname) };
 }
 
+Result<void> FatDirectory::chdir(std::filesystem::path name)
+{
+    auto maybefentry = openEntry(name, OpenFileMode::Read);
+    if (!maybefentry.has_value()) {
+        return std::unexpected(std::move(maybefentry).error());
+    }
+    auto fentry = std::move(maybefentry).value();
+    assert(!fentry.created);
+    if (!fatreferenceisdirectory(fentry.dir, fentry.index, 0)) {
+        return std::unexpected(Error("Can't chdir into a non-directory: '{}'", name));
+    }
+
+    mDirectory = fentry.dir;
+    mIndex = fentry.index;
+    mTarget = fentry.dir->n;
+    mShort = std::move(fentry.shortname);
+    mLong = std::move(fentry.longname);
+
+    return {};
+}
+
 Result<void> FatDirectory::rmdir(std::filesystem::path name, Force force, Recursive recursive)
 {
 }
@@ -415,6 +432,9 @@ Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name,
             return std::unexpected(Error("Existing file is a directory: {}", name));
         }
         if (mode & OpenFileMode::Truncate) {
+            if (mode & OpenFileMode::Read) {
+                return std::unexpected(Error("Can't both truncate and read"));
+            }
             // truncate
             int32_t next = fatentrygetfirstcluster(fentry.dir, fentry.index, fatbits(mFat->f));
             for (int32_t cl = next; cl != FAT_EOF && cl != FAT_UNUSED; cl = next) {
