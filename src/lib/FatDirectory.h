@@ -23,8 +23,8 @@ public:
     virtual Result<void> mkdir(std::filesystem::path name, Recursive recursive) override;
     virtual Result<void> rmdir(std::filesystem::path name, Force force, Recursive recursive) override;
     virtual Result<void> rm(std::filesystem::path name) override;
-    virtual Result<void> copy(std::filesystem::path name) override;
-    virtual Result<void> rename(std::filesystem::path oldName, std::filesystem::path newName) override;
+    virtual Result<void> copy(std::filesystem::path src, std::filesystem::path dst) override;
+    virtual Result<void> rename(std::filesystem::path src, std::filesystem::path dst) override;
     virtual Result<std::shared_ptr<File>> openFile(std::filesystem::path name, OpenFileMode mode) override;
 
 private:
@@ -35,6 +35,16 @@ private:
     Result<void> mkdirShort(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists);
     Result<void> mkdirLong(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists);
     Result<void> mkdirFinalize(unit* dir, int index, int32_t target);
+
+    struct FatEntry
+    {
+        unit *dir, *longdir;
+        int index, longindex;
+        bool created;
+
+        std::filesystem::path shortname, longname;
+    };
+    Result<FatEntry> openEntry(std::filesystem::path name, OpenFileMode mode);
 
 private:
     std::shared_ptr<FatFat> mFat;

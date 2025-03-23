@@ -286,27 +286,13 @@ Result<void> FatDirectory::mkdir(std::filesystem::path name, Recursive recursive
     return {};
 }
 
-Result<void> FatDirectory::rmdir(std::filesystem::path name, Force force, Recursive recursive)
-{
-}
-
-Result<void> FatDirectory::rm(std::filesystem::path name)
-{
-}
-
-Result<void> FatDirectory::copy(std::filesystem::path name)
-{
-}
-
-Result<void> FatDirectory::rename(std::filesystem::path oldName, std::filesystem::path newName)
-{
-}
-
-Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name, OpenFileMode mode)
+Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path name, OpenFileMode mode)
 {
     char* npath;
     unit* dir = mDirectory;
     int index = mIndex;
+    unit* longdir = nullptr;
+    int longindex = 0;
     bool created = false, isLong = false;
     if (fatinvalidname(name.c_str()) == 0) {
         // short file name
@@ -333,10 +319,10 @@ Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name,
         const auto target = dir->n;
         npath = fatstoragepathlong(name.c_str());
         // does the path already exist
-        if (fatlookupfilelong(mFat->f, target, npath, &dir, &index) != 0) {
+        if (fatlookupfilelongboth(mFat->f, target, npath, &dir, &index, &longdir, &longindex) != 0) {
             // file does not exist, create if mode is write
             if (mode & OpenFileMode::Write) {
-                if (fatcreatefilepathlong(mFat->f, target, npath, &dir, &index) != 0) {
+                if (fatcreatefilepathlongboth(mFat->f, target, npath, &dir, &index, &longdir, &longindex) != 0) {
                     return std::unexpected(Error("Failed to create file: {}", name));
                 }
                 fatreferencesettarget(mFat->f, dir, index, 0, FAT_UNUSED);
@@ -360,8 +346,6 @@ Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name,
         longname = npath;
     } else {
         free(npath);
-        unit* longdir;
-        int longindex;
         int res = fatlongnext(mFat->f, &dir, &index, &longdir, &longindex, &npath);
         if (res & FAT_LONG_ALL) {
             longname = npath;
@@ -369,25 +353,81 @@ Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name,
     }
     free(npath);
 
-    if (!created) {
+    if (longdir == nullptr) {
+        longdir = dir;
+        longindex = index;
+    }
+
+    return FatEntry { dir, longdir, index, longindex, created, std::move(shortname), std::move(longname) };
+}
+
+Result<void> FatDirectory::rmdir(std::filesystem::path name, Force force, Recursive recursive)
+{
+}
+
+Result<void> FatDirectory::rm(std::filesystem::path name)
+{
+    auto maybefentry = openEntry(name, OpenFileMode::Read);
+    if (!maybefentry.has_value()) {
+        return std::unexpected(std::move(maybefentry).error());
+    }
+    auto fentry = std::move(maybefentry).value();
+    assert(!fentry.created);
+    if (fatreferenceisdirectory(fentry.dir, fentry.index, 0)) {
+        return std::unexpected(Error("Can't remove a directory (use rmdir): {}", name));
+    }
+    auto next = fatentrygetfirstcluster(fentry.dir, fentry.index, fatbits(mFat->f));
+    for (auto cl = next; cl != FAT_EOF && cl != FAT_UNUSED; cl = next) {
+        next = fatgetnextcluster(mFat->f, cl);
+        fatsetnextcluster(mFat->f, cl, FAT_UNUSED);
+    }
+
+    if ((fentry.longdir != fentry.dir || fentry.longindex != fentry.index)) {
+        if (fatdeletelong(mFat->f, fentry.longdir, fentry.longindex) != 0) {
+            fatflush(mFat->f);
+            return std::unexpected(Error("Failed to delete long name for '{}' -- '{}'", fentry.shortname, fentry.longname));
+        }
+    }
+    fatentrydelete(fentry.dir, fentry.index);
+    fatflush(mFat->f);
+    return {};
+}
+
+Result<void> FatDirectory::copy(std::filesystem::path src, std::filesystem::path dst)
+{
+}
+
+Result<void> FatDirectory::rename(std::filesystem::path src, std::filesystem::path dst)
+{
+}
+
+Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name, OpenFileMode mode)
+{
+    auto maybefentry = openEntry(name, mode);
+    if (!maybefentry.has_value()) {
+        return std::unexpected(std::move(maybefentry).error());
+    }
+    auto fentry = std::move(maybefentry).value();
+
+    if (!fentry.created) {
         // file exists, check and truncate if needed
-        if (fatreferenceisdirectory(dir, index, 0)) {
+        if (fatreferenceisdirectory(fentry.dir, fentry.index, 0)) {
             return std::unexpected(Error("Existing file is a directory: {}", name));
         }
         if (mode & OpenFileMode::Truncate) {
             // truncate
-            int32_t next = fatentrygetfirstcluster(dir, index, fatbits(mFat->f));
+            int32_t next = fatentrygetfirstcluster(fentry.dir, fentry.index, fatbits(mFat->f));
             for (int32_t cl = next; cl != FAT_EOF && cl != FAT_UNUSED; cl = next) {
                 next = fatgetnextcluster(mFat->f, cl);
                 fatsetnextcluster(mFat->f, cl, FAT_UNUSED);
             }
 
-            fatreferencesettarget(mFat->f, dir, index, 0, FAT_UNUSED);
-            fatentrysetsize(dir, index, 0);
+            fatreferencesettarget(mFat->f, fentry.dir, fentry.index, 0, FAT_UNUSED);
+            fatentrysetsize(fentry.dir, fentry.index, 0);
         }
     }
 
-    return std::shared_ptr<FatFile>(new FatFile(mFat, std::move(shortname), std::move(longname), dir, index));
+    return std::shared_ptr<FatFile>(new FatFile(mFat, std::move(fentry.shortname), std::move(fentry.longname), fentry.dir, fentry.index));
 }
 
 const std::filesystem::path& FatDirectory::shortPath() const

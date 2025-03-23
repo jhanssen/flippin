@@ -42,8 +42,8 @@ public:
     virtual Result<void> rmdir(std::filesystem::path name, Force force = Force::No, Recursive recursive = Recursive::No) = 0;
 
     virtual Result<void> rm(std::filesystem::path name) = 0;
-    virtual Result<void> copy(std::filesystem::path name) = 0;
-    virtual Result<void> rename(std::filesystem::path oldName, std::filesystem::path newName) = 0;
+    virtual Result<void> copy(std::filesystem::path src, std::filesystem::path dst) = 0;
+    virtual Result<void> rename(std::filesystem::path src, std::filesystem::path dst) = 0;
 
     virtual Result<std::shared_ptr<File>> openFile(std::filesystem::path name, OpenFileMode mode) = 0;
 
