@@ -27,8 +27,15 @@ FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat)
 }
 
 FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat, std::filesystem::path shortp, std::filesystem::path longp, int32_t target)
-    : mFat(std::move(fat)), mShort(shortp.u8string() + u8'/'), mLong(longp.u8string() + u8'/')
+    : mFat(std::move(fat)), mShort(std::move(shortp)), mLong(std::move(longp))
 {
+    if (!mLong.empty()) {
+        mLong += u8'/';
+    }
+    if (!mShort.empty()) {
+        mShort += u8'/';
+    }
+
     mTarget = (target == FAT_ERR) ? fatgetrootbegin(mFat->f) : target;
     mFirst = FAT_FIRST;
     mLast = fatlastcluster(mFat->f);
@@ -46,17 +53,17 @@ FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat, std::filesystem::path sh
     unit* directory = nullptr;
     int index = 0;
 
-    int res = fatlookuppath(mFat->f, mTarget, npath, &directory, &index);
-    mTarget = res ? fatlookuppathfirstcluster(mFat->f, mTarget, npath) : fatreferencegettarget(mFat->f, directory, index, 0);
+    //int res = fatlookuppath(mFat->f, mTarget, npath, &directory, &index);
+    mTarget = fatlookuppathfirstcluster(mFat->f, mTarget, npath); // : fatreferencegettarget(mFat->f, directory, index, 0);
 
     free(npath);
 
-    if (res && mTarget == FAT_ERR) {
+    if (mTarget == FAT_ERR) {
         return;
     }
 
-    mDirectory = directory;
-    mIndex = index;
+    mDirectory = fatclusterread(mFat->f, mTarget);
+    mIndex = 0;
 }
 
 FatDirectory::~FatDirectory()
@@ -97,6 +104,9 @@ std::vector<Entry> FatDirectory::buildEntries(unit* startDir, int startIndex) co
 
         if (attrs & FAT_ATTR_DIR) {
             // directory
+            if (shortname == "." || shortname == "..") {
+                continue;
+            }
             entries.push_back(Entry(std::shared_ptr<FatDirectory>(new FatDirectory(mFat, std::move(shortname), std::move(longname), mTarget))));
         } else if (!(attrs & FAT_ATTR_VOLUME)) {
             // file

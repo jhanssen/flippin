@@ -20,23 +20,31 @@ int main(int argc, char** argv, char** envp)
     }
     fmt::print("Flippy: opening image '{}'\n", args.freeformValue(0));
     const auto& imageName = args.freeformValue(0);
-    auto maybefs = Filesystem::root(imageName);
-    if (!maybefs.has_value()) {
-        fmt::print(stderr, "Flippy: cannot open image '{}': {}\n", imageName, maybefs.error().message());
+    auto maybedir = Filesystem::root(imageName);
+    if (!maybedir.has_value()) {
+        fmt::print(stderr, "Flippy: cannot open image '{}': {}\n", imageName, maybedir.error().message());
         return 1;
     }
-    auto fs = std::move(maybefs).value();
-    auto maybeentries = fs->ls();
-    if (!maybeentries.has_value()) {
-        fmt::print(stderr, "Flippy: cannot list entries: {}\n", maybeentries.error().message());
-        return 1;
-    }
-    for (const auto& entry : maybeentries.value()) {
-        if (entry.isFile()) {
-            fmt::print("File '{}'\n", entry.asFile()->longPath().value());
-        } else if (entry.isDirectory()) {
-            fmt::print("Directory '{}'\n", entry.asDirectory()->longPath().value());
+    auto rootdir = std::move(maybedir).value();
+
+    std::function<int(const std::shared_ptr<Directory>&)> printDir;
+    printDir = [&printDir](const std::shared_ptr<Directory>& dir) -> int {
+        auto maybeentries = dir->ls();
+        if (!maybeentries.has_value()) {
+            fmt::print(stderr, "Flippy: cannot list entries: {}\n", maybeentries.error().message());
+            return 1;
         }
-    }
-    return 0;
+        for (auto& entry : maybeentries.value()) {
+            if (entry.isFile()) {
+                fmt::print("File '{}'\n", entry.asFile()->longPath().value());
+            } else if (entry.isDirectory()) {
+                fmt::print("Directory '{}'\n", entry.asDirectory()->longPath().value());
+                printDir(entry.acquireDirectory());
+            }
+        }
+
+        return 0;
+    };
+
+    return printDir(rootdir);
 }
