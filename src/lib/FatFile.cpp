@@ -187,7 +187,11 @@ Result<std::size_t> FatFile::write(const std::vector<uint8_t>& data)
 
 Result<void> FatFile::close()
 {
+    if (!mFat) {
+        return std::unexpected(Error("File '{}' is already closed", longPath()));
+    }
     mFat.reset();
+    return {};
 }
 
 } // namespace flippy
