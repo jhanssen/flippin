@@ -34,6 +34,7 @@ private:
     std::vector<Entry> buildEntries(unit* startDir, int startIndex) const;
     Result<void> mkdirShort(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists);
     Result<void> mkdirLong(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists);
+    Result<void> mkdirFinalize(unit* dir, int index, int32_t target);
 
 private:
     std::shared_ptr<FatFat> mFat;

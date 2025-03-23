@@ -38,7 +38,7 @@ int main(int argc, char** argv, char** envp)
     int iter = 0, indent = 0;
     printDir = [&printDir, &iter, &indent](const std::shared_ptr<Directory>& dir) -> int {
         if (iter++ == 1) {
-            auto res = dir->mkdir("sub1/sub2", Directory::Recursive::Yes);
+            auto res = dir->mkdir("sub1foobar/sub2", Directory::Recursive::Yes);
             if (!res) {
                 fmt::print(stderr, "Flippy: cannot create directory: {}\n", res.error().message());
                 //return 1;

@@ -161,30 +161,12 @@ Result<void> FatDirectory::mkdirShort(const std::filesystem::path& currentPath, 
     }
 
     fatcreatefile(mFat->f, target, npath, &dir, &index);
-    fatentrysetattributes(dir, index, 0x10);
-    auto next = fatclusterfindfreebetween(mFat->f, mFirst, mLast, -1);
-    if (next == FAT_ERR) {
-        return std::unexpected(Error("filesystem full"));
-    }
-    fatentrysetfirstcluster(dir, index, fatbits(mFat->f), next);
-    fatsetnextcluster(mFat->f, next, FAT_EOF);
 
-    auto cluster = fatclustercreate(mFat->f, next);
-    for (index = 0; index < cluster->size / 32; ++index) {
-        fatentryzero(cluster, index);
-    }
-
-    fatentrysetshortname(cluster, 0, DOTFILE);
-    fatentrysetfirstcluster(cluster, 0, fatbits(mFat->f), next);
-    fatentrysetattributes(cluster, 0, 0x10);
-
-    fatentrysetshortname(cluster, 1, DOTDOTFILE);
-    fatentrysetfirstcluster(cluster, 1, fatbits(mFat->f), target == mRoot ? 0 : target);
-    fatentrysetattributes(cluster, 1, 0x10);
+    auto ret = mkdirFinalize(dir, index, target);
 
     free(npath);
 
-    return {};
+    return std::move(ret);
 }
 
 Result<void> FatDirectory::mkdirLong(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists)
@@ -219,6 +201,16 @@ Result<void> FatDirectory::mkdirLong(const std::filesystem::path& currentPath, c
     }
 
     fatcreatefilepathlong(mFat->f, target, npath, &dir, &index);
+
+    auto ret = mkdirFinalize(dir, index, target);
+
+    free(npath);
+
+    return std::move(ret);
+}
+
+Result<void> FatDirectory::mkdirFinalize(unit* dir, int index, int32_t target)
+{
     fatentrysetattributes(dir, index, 0x10);
     auto next = fatclusterfindfreebetween(mFat->f, mFirst, mLast, -1);
     if (next == FAT_ERR) {
@@ -239,8 +231,6 @@ Result<void> FatDirectory::mkdirLong(const std::filesystem::path& currentPath, c
     fatentrysetshortname(cluster, 1, DOTDOTFILE);
     fatentrysetfirstcluster(cluster, 1, fatbits(mFat->f), target == mRoot ? 0 : target);
     fatentrysetattributes(cluster, 1, 0x10);
-
-    free(npath);
 
     return {};
 }
