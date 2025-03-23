@@ -89,17 +89,12 @@ std::vector<Entry> FatDirectory::buildEntries(unit* startDir, int startIndex) co
         std::filesystem::path shortname, longname;
         if (res & FAT_LONG_ALL) {
             longname = name;
-        } else if (res & FAT_SHORT) {
-            shortname = name;
         }
-        if (shortname.empty()) {
-            char shortnamebuf[13];
-            fatshortnametostring(shortnamebuf, &ENTRYPOS(dir, index, 0));
-
-            shortname = shortnamebuf;
-        }
-
         free(name);
+
+        char shortnamebuf[13];
+        fatshortnametostring(shortnamebuf, &ENTRYPOS(dir, index, 0));
+        shortname = shortnamebuf;
 
         const auto attrs = fatentrygetattributes(dir, index);
 
