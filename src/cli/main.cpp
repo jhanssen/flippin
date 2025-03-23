@@ -7,6 +7,13 @@
 
 using namespace flippy;
 
+template<typename... Args>
+void print_indented(int indent, fmt::format_string<Args...> format_str, Args&&... args)
+{
+    fmt::print("{:{}}", "", indent);
+    fmt::print(format_str, std::forward<Args>(args)...);
+}
+
 int main(int argc, char** argv, char** envp)
 {
     const auto args = ArgsParser::parse(
@@ -28,18 +35,29 @@ int main(int argc, char** argv, char** envp)
     auto rootdir = std::move(maybedir).value();
 
     std::function<int(const std::shared_ptr<Directory>&)> printDir;
-    printDir = [&printDir](const std::shared_ptr<Directory>& dir) -> int {
-        auto maybeentries = dir->ls();
+    int iter = 0, indent = 0;
+    printDir = [&printDir, &iter, &indent](const std::shared_ptr<Directory>& dir) -> int {
+        if (iter++ == 1) {
+            auto res = dir->mkdir("sub1/sub2", Directory::Recursive::Yes);
+            if (!res) {
+                fmt::print(stderr, "Flippy: cannot create directory: {}\n", res.error().message());
+                //return 1;
+            }
+        }
+
+        auto maybeentries = dir->dir();
         if (!maybeentries.has_value()) {
             fmt::print(stderr, "Flippy: cannot list entries: {}\n", maybeentries.error().message());
             return 1;
         }
         for (auto& entry : maybeentries.value()) {
             if (entry.isFile()) {
-                fmt::print("File '{}'\n", entry.asFile()->longPath().value());
+                print_indented(indent, "File '{}'\n", entry.asFile()->longPath().value());
             } else if (entry.isDirectory()) {
-                fmt::print("Directory '{}'\n", entry.asDirectory()->longPath().value());
+                print_indented(indent, "Directory '{}'\n", entry.asDirectory()->longPath().value());
+                indent += 2;
                 printDir(entry.acquireDirectory());
+                indent -= 2;
             }
         }
 
