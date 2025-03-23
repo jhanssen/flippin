@@ -16,11 +16,11 @@ class FatFile : public File
 public:
     virtual ~FatFile() override;
 
-    virtual Result<std::filesystem::path> shortPath() const override;
-    virtual Result<std::filesystem::path> longPath() const override;
+    const std::filesystem::path& shortPath() const override;
+    const std::filesystem::path& longPath() const override;
     virtual Result<std::size_t> size() const override;
-    virtual Result<std::vector<uint8_t>> read(std::size_t offset = 0, std::size_t size = std::numeric_limits<std::size_t>::max()) const override;
-    virtual Result<std::size_t> write(std::size_t offset, const std::vector<uint8_t>& data) override;
+    virtual Result<std::vector<uint8_t>> read(std::size_t size) const override;
+    virtual Result<std::size_t> write(const std::vector<uint8_t>& data) override;
     virtual Result<void> close() override;
 
 private:
@@ -31,6 +31,10 @@ private:
     std::filesystem::path mShort, mLong;
     unit* mDirectory = nullptr;
     int mIndex = 0;
+    std::size_t mSize = 0;
+    mutable int32_t mCluster = 0;
+    mutable std::size_t mReadOffset = 0, mWriteOffset = 0;
+    mutable std::size_t mReadClusterOffset = 0, mWriteClusterOffset = 0;
 
     friend class FatDirectory;
 };

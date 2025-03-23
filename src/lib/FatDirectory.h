@@ -16,8 +16,8 @@ public:
     FatDirectory(std::shared_ptr<FatFat> fat);
     virtual ~FatDirectory() override;
 
-    virtual Result<std::filesystem::path> shortPath() const override;
-    virtual Result<std::filesystem::path> longPath() const override;
+    const std::filesystem::path& shortPath() const override;
+    const std::filesystem::path& longPath() const override;
     virtual Result<std::vector<Entry>> dir() const override;
     virtual Result<void> chdir(std::filesystem::path name) override;
     virtual Result<void> mkdir(std::filesystem::path name, Recursive recursive) override;

@@ -236,17 +236,22 @@ Result<void> FatDirectory::mkdir(std::filesystem::path name, Recursive recursive
         return std::unexpected(Error("Only relative paths are supported"));
     }
 
+    char* npath;
     // first, check if each part of the path is valid
     std::vector<std::pair<std::filesystem::path, bool>> parts;
     bool isLong = false;
     for (const auto& part : name) {
         if (fatinvalidname(part.c_str()) == 0) {
             // valid short
-            parts.push_back({part, isLong});
+            npath = fatstoragename(part.c_str());
+            parts.push_back({std::filesystem::path(npath), isLong});
+            free(npath);
         } else if (fatinvalidnamelong(part.c_str()) == 0) {
+            npath = fatstoragenamelong(part.c_str());
             // valid long
             isLong = true;
-            parts.push_back({part, true});
+            parts.push_back({std::filesystem::path(npath), true});
+            free(npath);
         } else {
             return std::unexpected(Error("Invalid directory name"));
         }
@@ -299,14 +304,95 @@ Result<void> FatDirectory::rename(std::filesystem::path oldName, std::filesystem
 
 Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name, OpenFileMode mode)
 {
+    char* npath;
+    unit* dir = mDirectory;
+    int index = mIndex;
+    bool created = true, isLong = false;
+    if (fatinvalidname(name.c_str()) == 0) {
+        // short file name
+
+        const auto target = dir->n;
+        npath = fatstoragepath(name.c_str());
+        // does the path already exist
+        if (fatlookupfile(mFat->f, target, npath, &dir, &index) != 0) {
+            // file does not exist, create if mode is write
+            if (mode & OpenFileMode::Write) {
+                if (fatcreatefile(mFat->f, target, npath, &dir, &index) != 0) {
+                    return std::unexpected(Error("Failed to create file: {}", name));
+                }
+                fatreferencesettarget(mFat->f, dir, index, 0, FAT_UNUSED);
+                created = true;
+            } else {
+                return std::unexpected(Error("File does not exist: {}", name));
+            }
+        }
+    } else if (fatinvalidnamelong(name.c_str()) == 0) {
+        // long file name
+
+        const auto target = dir->n;
+        npath = fatstoragepathlong(name.c_str());
+        // does the path already exist
+        if (fatlookupfilelong(mFat->f, target, npath, &dir, &index) != 0) {
+            // file does not exist, create if mode is write
+            if (mode & OpenFileMode::Write) {
+                if (fatcreatefilepathlong(mFat->f, target, npath, &dir, &index) != 0) {
+                    return std::unexpected(Error("Failed to create file: {}", name));
+                }
+                fatreferencesettarget(mFat->f, dir, index, 0, FAT_UNUSED);
+                created = isLong = true;
+            } else {
+                return std::unexpected(Error("File does not exist: {}", name));
+            }
+        }
+    } else {
+        return std::unexpected(Error("Invalid file name: {}", name));
+    }
+
+    std::filesystem::path shortname, longname;
+
+    char shortnamebuf[13];
+    fatshortnametostring(shortnamebuf, &ENTRYPOS(dir, index, 0));
+    shortname = shortnamebuf;
+
+    if (isLong) {
+        longname = npath;
+    } else {
+        free(npath);
+        unit* longdir;
+        int longindex;
+        int res = fatlongnext(mFat->f, &dir, &index, &longdir, &longindex, &npath);
+        if (res & FAT_LONG_ALL) {
+            longname = npath;
+        }
+    }
+    free(npath);
+
+    if (!created) {
+        // file exists, check and truncate if needed
+        if (fatreferenceisdirectory(dir, index, 0)) {
+            return std::unexpected(Error("Existing file is a directory: {}", name));
+        }
+        if (mode & OpenFileMode::Truncate) {
+            // truncate
+            int32_t next = fatentrygetfirstcluster(dir, index, fatbits(mFat->f));
+            for (int32_t cl = next; cl != FAT_EOF && cl != FAT_UNUSED; cl = next) {
+                next = fatgetnextcluster(mFat->f, cl);
+                fatsetnextcluster(mFat->f, cl, FAT_UNUSED);
+            }
+
+            fatreferencesettarget(mFat->f, dir, index, 0, FAT_UNUSED);
+        }
+    }
+
+    return std::shared_ptr<FatFile>(new FatFile(mFat, std::move(shortname), std::move(longname), dir, index));
 }
 
-Result<std::filesystem::path> FatDirectory::shortPath() const
+const std::filesystem::path& FatDirectory::shortPath() const
 {
     return mShort;
 }
 
-Result<std::filesystem::path> FatDirectory::longPath() const
+const std::filesystem::path& FatDirectory::longPath() const
 {
     return mLong.empty() ? mShort : mLong;
 }

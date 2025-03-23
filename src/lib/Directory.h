@@ -15,8 +15,9 @@ class Directory
 public:
     enum class OpenFileMode
     {
-        Read  = 0x1,
-        Write = 0x2
+        Read     = 0x1,
+        Write    = 0x2,
+        Truncate = 0x4
     };
     enum class Recursive
     {
@@ -31,8 +32,8 @@ public:
 
     virtual ~Directory() = 0;
 
-    virtual Result<std::filesystem::path> shortPath() const = 0;
-    virtual Result<std::filesystem::path> longPath() const = 0;
+    virtual const std::filesystem::path& shortPath() const = 0;
+    virtual const std::filesystem::path& longPath() const = 0;
 
     virtual Result<std::vector<Entry>> dir() const = 0;
 
