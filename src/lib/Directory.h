@@ -23,6 +23,11 @@ public:
         No,
         Yes
     };
+    enum class Force
+    {
+        No,
+        Yes
+    };
 
     virtual ~Directory() = 0;
 
@@ -33,7 +38,7 @@ public:
 
     virtual Result<void> chdir(std::filesystem::path name) = 0;
     virtual Result<void> mkdir(std::filesystem::path name, Recursive recursive = Recursive::No) = 0;
-    virtual Result<void> rmdir(std::filesystem::path name, Recursive recursive = Recursive::No) = 0;
+    virtual Result<void> rmdir(std::filesystem::path name, Force force = Force::No, Recursive recursive = Recursive::No) = 0;
 
     virtual Result<void> rm(std::filesystem::path name) = 0;
     virtual Result<void> copy(std::filesystem::path name) = 0;

@@ -281,7 +281,7 @@ Result<void> FatDirectory::mkdir(std::filesystem::path name, Recursive recursive
     return {};
 }
 
-Result<void> FatDirectory::rmdir(std::filesystem::path name, Recursive recursive)
+Result<void> FatDirectory::rmdir(std::filesystem::path name, Force force, Recursive recursive)
 {
 }
 

@@ -21,7 +21,7 @@ public:
     virtual Result<std::vector<Entry>> dir() const override;
     virtual Result<void> chdir(std::filesystem::path name) override;
     virtual Result<void> mkdir(std::filesystem::path name, Recursive recursive) override;
-    virtual Result<void> rmdir(std::filesystem::path name, Recursive recursive) override;
+    virtual Result<void> rmdir(std::filesystem::path name, Force force, Recursive recursive) override;
     virtual Result<void> rm(std::filesystem::path name) override;
     virtual Result<void> copy(std::filesystem::path name) override;
     virtual Result<void> rename(std::filesystem::path oldName, std::filesystem::path newName) override;
