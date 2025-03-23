@@ -93,6 +93,11 @@ public:
         return m_mask;
     }
 
+    constexpr operator BitType() const noexcept
+    {
+        return static_cast<BitType>(m_mask);
+    }
+
 private:
     MaskType m_mask;
 };

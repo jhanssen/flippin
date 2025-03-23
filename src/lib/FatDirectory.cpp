@@ -307,7 +307,7 @@ Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name,
     char* npath;
     unit* dir = mDirectory;
     int index = mIndex;
-    bool created = true, isLong = false;
+    bool created = false, isLong = false;
     if (fatinvalidname(name.c_str()) == 0) {
         // short file name
 
@@ -321,6 +321,7 @@ Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name,
                     return std::unexpected(Error("Failed to create file: {}", name));
                 }
                 fatreferencesettarget(mFat->f, dir, index, 0, FAT_UNUSED);
+                fatentrysetattributes(dir, index, 0x20);
                 created = true;
             } else {
                 return std::unexpected(Error("File does not exist: {}", name));
@@ -339,6 +340,7 @@ Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name,
                     return std::unexpected(Error("Failed to create file: {}", name));
                 }
                 fatreferencesettarget(mFat->f, dir, index, 0, FAT_UNUSED);
+                fatentrysetattributes(dir, index, 0x20);
                 created = isLong = true;
             } else {
                 return std::unexpected(Error("File does not exist: {}", name));
@@ -381,6 +383,7 @@ Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name,
             }
 
             fatreferencesettarget(mFat->f, dir, index, 0, FAT_UNUSED);
+            fatentrysetsize(dir, index, 0);
         }
     }
 
