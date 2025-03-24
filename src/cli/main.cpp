@@ -52,9 +52,9 @@ int main(int argc, char** argv, char** envp)
         }
         for (auto& entry : maybeentries.value()) {
             if (entry.isFile()) {
-                print_indented(indent, "File '{}'\n", entry.asFile()->longPath().value());
+                print_indented(indent, "File '{}'\n", entry.asFile()->longPath());
             } else if (entry.isDirectory()) {
-                print_indented(indent, "Directory '{}'\n", entry.asDirectory()->longPath().value());
+                print_indented(indent, "Directory '{}'\n", entry.asDirectory()->longPath());
                 indent += 2;
                 printDir(entry.acquireDirectory());
                 indent -= 2;
