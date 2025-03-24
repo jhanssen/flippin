@@ -583,7 +583,7 @@ Result<void> FatDirectory::copy(std::filesystem::path src, std::filesystem::path
     if (!maybesrcfile.has_value()) {
         return std::unexpected(std::move(maybesrcfile).error());
     }
-    auto maybedstfile = openFile(dst, OpenFileMode::Write | OpenFileMode::Truncate);
+    auto maybedstfile = openFile(dst, OpenFileMode::Create | OpenFileMode::Write | OpenFileMode::Truncate);
     if (!maybedstfile.has_value()) {
         return std::unexpected(std::move(maybedstfile).error());
     }
