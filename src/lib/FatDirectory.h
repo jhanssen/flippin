@@ -10,6 +10,8 @@ extern "C" {
 
 namespace flippy {
 
+class Filesystem;
+
 class FatDirectory : public Directory
 {
 public:
@@ -54,6 +56,8 @@ private:
     std::filesystem::path mShort, mLong;
     unit *mDirectory = nullptr, *mParentDirectory = nullptr;
     int mIndex = 0, mParentIndex = 0;
+
+    friend class Filesystem;
 };
 
 } // namespace flippy

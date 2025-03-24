@@ -9,20 +9,7 @@ extern "C" {
 
 namespace flippy {
 
-struct FatFormat
-{
-    std::size_t headerByteSize;
-    std::size_t dataByteSize;
-
-    std::size_t sectorByteSize;
-    std::size_t sectorsPerCluster;
-    std::size_t sectorsPerTrack;
-    std::size_t surfaceCount;
-    std::size_t cylinderCount;
-    std::size_t maxRootEntries;
-};
-
-std::unordered_map<Format, FatFormat> formatInfo = {
+static const std::unordered_map<Format, FileFormat> formatInfo = {
     { Format::FDI, { 4096, 1261568, 1024, 1, 8, 2, 77, 192 } },
     { Format::HDM, {    0, 1261568, 1024, 1, 8, 2, 77, 192 } },
 };
@@ -141,7 +128,7 @@ static inline void fatzero(fat *f, int table) {
         fatentryzero(root, index);
 }
 
-Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path, Format format)
+Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path, FileFormat format)
 {
     int rfd = open(path.c_str(), O_RDONLY);
     if (rfd != -1 || errno != ENOENT) {
@@ -151,26 +138,16 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
         return std::unexpected(Error("create: File already exists, {} {}", rfd, errno));
     }
 
-    // create new file
-    if (format == Format::Auto) {
-        format = formatFromPath(path);
-    }
-    auto infoIt = formatInfo.find(format);
-    if (infoIt == formatInfo.end()) {
-        return std::unexpected(Error("create: Unsupported format"));
-    }
-
-    const auto& info = infoIt->second;
-    const std::size_t offset = info.headerByteSize;
+    const std::size_t offset = format.headerByteSize;
 
     char* filename = strdup(path.c_str());
 
-    const auto sectorCount = info.cylinderCount * info.sectorsPerTrack * info.surfaceCount;
+    const auto sectorCount = format.cylinderCount * format.sectorsPerTrack * format.surfaceCount;
 
     auto f = fatcreate();
     f->devicename = filename;
     f->offset = offset;
-    f->boot = fatunitcreate(info.sectorByteSize);
+    f->boot = fatunitcreate(format.sectorByteSize);
     f->boot->n = 0;
     f->boot->origin = offset;
     f->boot->dirty = 1;
@@ -178,13 +155,13 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
 
     memset(fatunitgetdata(f->boot), 0, f->boot->size);
     fatsetnumfats(f, 2);
-    fatsetbytespersector(f, info.sectorByteSize);
+    fatsetbytespersector(f, format.sectorByteSize);
     fatsetnumsectors(f, sectorCount);
 
-    if (fatsetsectorspercluster(f, info.sectorsPerCluster)) {
+    if (fatsetsectorspercluster(f, format.sectorsPerCluster)) {
         free(filename);
         fatquit(f);
-        return std::unexpected(Error("create: Invalid sectors per cluster: {}", info.sectorsPerCluster));
+        return std::unexpected(Error("create: Invalid sectors per cluster: {}", format.sectorsPerCluster));
     }
 
     fatsetsize(f);
@@ -199,10 +176,10 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
         return std::unexpected(toosmall(f));
     }
 
-    if (fatsetrootentries(f, info.maxRootEntries)) {
+    if (fatsetrootentries(f, format.maxRootEntries)) {
         free(filename);
         fatquit(f);
-        return std::unexpected(Error("create: Invalid number of entries in root: {}", info.maxRootEntries));
+        return std::unexpected(Error("create: Invalid number of entries in root: {}", format.maxRootEntries));
     }
 
     fatsetbootsignature(f);
@@ -216,7 +193,7 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
         srandom(time(NULL));
         fatsetserialnumber(f, random() % 0xFFFFFFFF);
 
-        f->info = fatunitcreate(info.sectorByteSize);
+        f->info = fatunitcreate(format.sectorByteSize);
         f->info->n = 1;
         f->info->origin = offset;
         f->info->dirty = 1;
@@ -265,7 +242,25 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
         fatcopyboottobackup(f);
     fatzero(f, 1);
 
-    if (format == Format::FDI) {
+    fatflush(f);
+
+    return std::make_shared<FatDirectory>(std::make_shared<FatFat>(f));
+}
+
+Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path, Format format)
+{
+    // create new file
+    if (format == Format::Auto) {
+        format = formatFromPath(path);
+    }
+    auto infoIt = formatInfo.find(format);
+    if (infoIt == formatInfo.end()) {
+        return std::unexpected(Error("create: Unsupported format"));
+    }
+    const auto& info = infoIt->second;
+
+    auto result = create(path, info);
+    if (result.has_value() && format == Format::FDI) {
         // write 4k header
         // ### should ensure this is always little endian
         std::vector<uint32_t> header;
@@ -279,17 +274,18 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
         header[6] = info.surfaceCount; // 2
         header[7] = info.cylinderCount; // 77
 
+        const auto dir = static_cast<FatDirectory*>(result.value().get());
+        const auto fd = dir->mFat->f->fd;
         // get current file position
-        const off_t currentPos = lseek(f->fd, 0, SEEK_CUR);
-        lseek(f->fd, 0, SEEK_SET);
+        const off_t currentPos = lseek(fd, 0, SEEK_CUR);
+        lseek(fd, 0, SEEK_SET);
         // write header
-        write(f->fd, header.data(), header.size() * sizeof(uint32_t));
+        write(fd, header.data(), header.size() * sizeof(uint32_t));
         // seek back
-        lseek(f->fd, currentPos, SEEK_SET);
+        lseek(fd, currentPos, SEEK_SET);
     }
-    fatflush(f);
 
-    return std::make_shared<FatDirectory>(std::make_shared<FatFat>(f));
+    return std::move(result);
 }
 
 } // namespace flippy
