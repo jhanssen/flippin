@@ -322,8 +322,8 @@ Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path nam
         npath = fatstoragepath(name.c_str());
         // does the path already exist
         if (ptrs.lookupshort(mFat->f, target, npath, &dir, &index) != 0) {
-            // file does not exist, create if mode is write
-            if (mode & OpenFileMode::Write) {
+            // file does not exist, create if allowed
+            if (mode & OpenFileMode::Create) {
                 if (fatcreatefile(mFat->f, target, npath, &dir, &index) != 0) {
                     return std::unexpected(Error("{}: Failed to create file: {}", descr, name));
                 }
@@ -512,6 +512,39 @@ Result<void> FatDirectory::rmdir(std::filesystem::path name, Force force, Recurs
 
 Result<void> FatDirectory::rename(std::filesystem::path src, std::filesystem::path dst)
 {
+    auto maybesrc = openEntry(src, OpenFileMode::Read, Recursive::Yes, "rename, src");
+    if (!maybesrc.has_value()) {
+        return std::unexpected(std::move(maybesrc).error());
+    }
+    auto srcentry = std::move(maybesrc).value();
+    if (fatentryisdirectory(srcentry.dir, srcentry.index)) {
+        return std::unexpected(Error("rename: Can't rename a directory"));
+    }
+    auto maybedst = openEntry(dst, OpenFileMode::Create, Recursive::Yes, "rename, dst");
+    if (!maybedst.has_value()) {
+        return std::unexpected(std::move(maybedst).error());
+    }
+    auto dstentry = std::move(maybedst).value();
+    if (!dstentry.created) {
+        return std::unexpected(Error("rename: Target of rename cannot be an existing file"));
+    }
+
+    // update dst entry
+    const auto cl = fatentrygetfirstcluster(srcentry.dir, srcentry.index, fatbits(mFat->f));
+    fatentrysetfirstcluster(dstentry.dir, dstentry.index, fatbits(mFat->f), cl);
+    const auto attributes = fatentrygetattributes(srcentry.dir, srcentry.index);
+    fatentrysetattributes(dstentry.dir, dstentry.index, attributes);
+    const auto size = fatentrygetsize(srcentry.dir, srcentry.index);
+    fatentrysetsize(dstentry.dir, dstentry.index, size);
+
+    // delete src
+    if (srcentry.longdir != nullptr && (srcentry.longdir != srcentry.dir || srcentry.longindex != srcentry.index)) {
+        fatdeletelong(mFat->f, srcentry.longdir, srcentry.longindex);
+    }
+    fatdeletelong(mFat->f, srcentry.longdir, srcentry.longindex);
+    fatentrydelete(srcentry.dir, srcentry.index);
+
+    return {};
 }
 
 Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name, OpenFileMode mode)
@@ -528,9 +561,6 @@ Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name,
             return std::unexpected(Error("openFile: Existing file is a directory: {}", name));
         }
         if (mode & OpenFileMode::Truncate) {
-            if (mode & OpenFileMode::Read) {
-                return std::unexpected(Error("openFile: Can't both truncate and read"));
-            }
             // truncate
             int32_t next = fatentrygetfirstcluster(fentry.dir, fentry.index, fatbits(mFat->f));
             for (int32_t cl = next; cl != FAT_EOF && cl != FAT_UNUSED; cl = next) {

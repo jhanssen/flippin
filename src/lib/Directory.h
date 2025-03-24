@@ -17,7 +17,8 @@ public:
     {
         Read     = 0x1,
         Write    = 0x2,
-        Truncate = 0x4
+        Truncate = 0x4,
+        Create   = 0x8
     };
     enum class Recursive
     {
