@@ -287,7 +287,7 @@ Result<void> FatDirectory::mkdir(std::filesystem::path name, Recursive recursive
     return {};
 }
 
-Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path name, OpenFileMode mode, const char* descr)
+Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path name, OpenFileMode mode, Recursive lookInSubDirs, const char* descr)
 {
     char* npath;
     unit* dir = mDirectory;
@@ -295,13 +295,33 @@ Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path nam
     unit* longdir = nullptr;
     int longindex = 0;
     bool created = false, isLong = false;
-    if (fatinvalidname(name.c_str()) == 0) {
+
+    struct {
+        int(*invalidshort)(const char*);
+        int(*lookupshort)(fat*, int32_t, const char*, unit**, int*);
+        int(*invalidlong)(const char*);
+        int(*lookuplong)(fat*, int32_t, char*, unit**, int*, unit**, int*);
+    } ptrs;
+
+    if (lookInSubDirs == Recursive::No) {
+        ptrs.invalidshort = fatinvalidname;
+        ptrs.lookupshort = fatlookupfile;
+        ptrs.invalidlong = fatinvalidnamelong;
+        ptrs.lookuplong = fatlookupfilelongboth;
+    } else {
+        ptrs.invalidshort = fatinvalidpath;
+        ptrs.lookupshort = fatlookuppath;
+        ptrs.invalidlong = fatinvalidpathlong;
+        ptrs.lookuplong = fatlookuppathlongboth;
+    }
+
+    if (ptrs.invalidshort(name.c_str()) == 0) {
         // short file name
 
         const auto target = dir->n;
         npath = fatstoragepath(name.c_str());
         // does the path already exist
-        if (fatlookupfile(mFat->f, target, npath, &dir, &index) != 0) {
+        if (ptrs.lookupshort(mFat->f, target, npath, &dir, &index) != 0) {
             // file does not exist, create if mode is write
             if (mode & OpenFileMode::Write) {
                 if (fatcreatefile(mFat->f, target, npath, &dir, &index) != 0) {
@@ -314,13 +334,13 @@ Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path nam
                 return std::unexpected(Error("{}: File does not exist: {}", descr, name));
             }
         }
-    } else if (fatinvalidnamelong(name.c_str()) == 0) {
+    } else if (ptrs.invalidlong(name.c_str()) == 0) {
         // long file name
 
         const auto target = dir->n;
         npath = fatstoragepathlong(name.c_str());
         // does the path already exist
-        if (fatlookupfilelongboth(mFat->f, target, npath, &dir, &index, &longdir, &longindex) != 0) {
+        if (ptrs.lookuplong(mFat->f, target, npath, &dir, &index, &longdir, &longindex) != 0) {
             // file does not exist, create if mode is write
             if (mode & OpenFileMode::Write) {
                 if (fatcreatefilepathlongboth(mFat->f, target, npath, &dir, &index, &longdir, &longindex) != 0) {
@@ -364,7 +384,7 @@ Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path nam
 
 Result<void> FatDirectory::chdir(std::filesystem::path name)
 {
-    auto maybefentry = openEntry(name, OpenFileMode::Read, "chdir");
+    auto maybefentry = openEntry(name, OpenFileMode::Read, Recursive::Yes, "chdir");
     if (!maybefentry.has_value()) {
         return std::unexpected(std::move(maybefentry).error());
     }
@@ -402,7 +422,7 @@ Result<void> FatDirectory::rm(unit* dir, int index, unit* longdir, int longindex
 
 Result<void> FatDirectory::rm(std::filesystem::path name)
 {
-    auto maybefentry = openEntry(name, OpenFileMode::Read, "rm");
+    auto maybefentry = openEntry(name, OpenFileMode::Read, Recursive::Yes, "rm");
     if (!maybefentry.has_value()) {
         return std::unexpected(std::move(maybefentry).error());
     }
@@ -419,7 +439,7 @@ Result<void> FatDirectory::rm(std::filesystem::path name)
 
 Result<void> FatDirectory::rmdir(std::filesystem::path name, Force force, Recursive recursive)
 {
-    auto maybefentry = openEntry(name, OpenFileMode::Read, "rmdir");
+    auto maybefentry = openEntry(name, OpenFileMode::Read, Recursive::Yes, "rmdir");
     if (!maybefentry.has_value()) {
         return std::unexpected(std::move(maybefentry).error());
     }
@@ -500,7 +520,7 @@ Result<void> FatDirectory::rename(std::filesystem::path src, std::filesystem::pa
 
 Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name, OpenFileMode mode)
 {
-    auto maybefentry = openEntry(name, mode, "openFile");
+    auto maybefentry = openEntry(name, mode, Recursive::Yes, "openFile");
     if (!maybefentry.has_value()) {
         return std::unexpected(std::move(maybefentry).error());
     }

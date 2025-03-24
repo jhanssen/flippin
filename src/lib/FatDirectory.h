@@ -46,7 +46,7 @@ private:
 
         std::filesystem::path shortname, longname;
     };
-    Result<FatEntry> openEntry(std::filesystem::path name, OpenFileMode mode, const char* descr);
+    Result<FatEntry> openEntry(std::filesystem::path name, OpenFileMode mode, Recursive lookInSubDirs, const char* descr);
 
 private:
     std::shared_ptr<FatFat> mFat;
