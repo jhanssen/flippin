@@ -30,8 +30,7 @@ public:
     virtual Result<std::shared_ptr<File>> openFile(std::filesystem::path name, OpenFileMode mode) override;
 
 private:
-    FatDirectory(std::shared_ptr<FatFat> fat, std::filesystem::path shortp, std::filesystem::path longp,
-                 unit* parentDir = nullptr, int parentIndex = 0);
+    FatDirectory(std::shared_ptr<FatFat> fat, std::filesystem::path shortp, std::filesystem::path longp, int32_t target);
 
 private:
     std::vector<Entry> buildEntries(unit* startDir, int startIndex) const;
@@ -54,8 +53,8 @@ private:
     std::shared_ptr<FatFat> mFat;
     int32_t mTarget, mRoot, mFirst, mLast;
     std::filesystem::path mShort, mLong;
-    unit *mDirectory = nullptr, *mParentDirectory = nullptr;
-    int mIndex = 0, mParentIndex = 0;
+    unit* mDirectory = nullptr;
+    int mIndex = 0;
 
     friend class Filesystem;
 };

@@ -26,10 +26,8 @@ FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat)
     mIndex = 0;
 }
 
-FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat, std::filesystem::path shortp, std::filesystem::path longp,
-                           unit* parentDir, int parentIndex)
-    : mFat(std::move(fat)), mShort(std::move(shortp)), mLong(std::move(longp)),
-      mParentDirectory(parentDir), mParentIndex(parentIndex)
+FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat, std::filesystem::path shortp, std::filesystem::path longp, int32_t target)
+    : mFat(std::move(fat)), mShort(std::move(shortp)), mLong(std::move(longp))
 {
     if (!mLong.empty()) {
         mLong += u8'/';
@@ -38,7 +36,7 @@ FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat, std::filesystem::path sh
         mShort += u8'/';
     }
 
-    mTarget = (mParentDirectory == nullptr) ? fatgetrootbegin(mFat->f) : mParentDirectory->n;
+    mTarget = (target == FAT_ERR) ? fatgetrootbegin(mFat->f) : target;
     mRoot = fatgetrootbegin(mFat->f);
     mFirst = FAT_FIRST;
     mLast = fatlastcluster(mFat->f);
@@ -108,7 +106,7 @@ std::vector<Entry> FatDirectory::buildEntries(unit* startDir, int startIndex) co
             if (shortname == "." || shortname == "..") {
                 continue;
             }
-            entries.push_back(Entry(std::shared_ptr<FatDirectory>(new FatDirectory(mFat, std::move(shortname), std::move(longname), dir, index))));
+            entries.push_back(Entry(std::shared_ptr<FatDirectory>(new FatDirectory(mFat, std::move(shortname), std::move(longname), dir->n))));
         } else if (!(attrs & FAT_ATTR_VOLUME)) {
             // file
             entries.push_back(Entry(std::shared_ptr<FatFile>(new FatFile(mFat, std::move(shortname), std::move(longname), dir, index))));
