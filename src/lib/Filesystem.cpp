@@ -18,7 +18,7 @@ static const std::unordered_map<Format, FileFormat> formatInfo = {
     { Format::DOS_720,  {    0,  368640,  512, 1,  9, 2, 40, 224 } }
 };
 
-static inline Format formatFromPath(std::filesystem::path path)
+static inline Format formatFromPath(const std::filesystem::path& path)
 {
     if (std::filesystem::is_regular_file(path)) {
         // try to look up based on file size
