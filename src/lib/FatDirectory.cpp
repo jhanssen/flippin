@@ -342,7 +342,7 @@ Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path nam
         // does the path already exist
         if (ptrs.lookuplong(mFat->f, target, npath, &dir, &index, &longdir, &longindex) != 0) {
             // file does not exist, create if mode is write
-            if (mode & OpenFileMode::Write) {
+            if (mode & OpenFileMode::Create) {
                 if (fatcreatefilepathlongboth(mFat->f, target, npath, &dir, &index, &longdir, &longindex) != 0) {
                     return std::unexpected(Error("{}: Failed to create file: {}", descr, name));
                 }
