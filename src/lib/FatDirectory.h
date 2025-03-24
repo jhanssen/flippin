@@ -28,13 +28,15 @@ public:
     virtual Result<std::shared_ptr<File>> openFile(std::filesystem::path name, OpenFileMode mode) override;
 
 private:
-    FatDirectory(std::shared_ptr<FatFat> fat, std::filesystem::path shortp, std::filesystem::path longp, int32_t target = FAT_ERR);
+    FatDirectory(std::shared_ptr<FatFat> fat, std::filesystem::path shortp, std::filesystem::path longp,
+                 unit* parentDir = nullptr, int parentIndex = 0);
 
 private:
     std::vector<Entry> buildEntries(unit* startDir, int startIndex) const;
     Result<void> mkdirShort(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists);
     Result<void> mkdirLong(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists);
     Result<void> mkdirFinalize(unit* dir, int index, int32_t target);
+    Result<void> rm(unit* dir, int index, unit* longdir = nullptr, int longindex = 0);
 
     struct FatEntry
     {
@@ -44,14 +46,14 @@ private:
 
         std::filesystem::path shortname, longname;
     };
-    Result<FatEntry> openEntry(std::filesystem::path name, OpenFileMode mode);
+    Result<FatEntry> openEntry(std::filesystem::path name, OpenFileMode mode, const char* descr);
 
 private:
     std::shared_ptr<FatFat> mFat;
     int32_t mTarget, mRoot, mFirst, mLast;
     std::filesystem::path mShort, mLong;
-    unit* mDirectory = nullptr;
-    int mIndex = 0;
+    unit *mDirectory = nullptr, *mParentDirectory = nullptr;
+    int mIndex = 0, mParentIndex = 0;
 };
 
 } // namespace flippy
