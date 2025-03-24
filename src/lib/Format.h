@@ -5,8 +5,12 @@ namespace flippy {
 enum class Format
 {
     Auto,
-    FDI,
-    HDM
+    PC98_FDI,
+    PC98_HDM,
+    DOS_144,
+    DOS_120,
+    DOS_720,
+    DOS_360
 };
 
 } // namespace flippy

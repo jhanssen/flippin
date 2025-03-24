@@ -10,16 +10,31 @@ extern "C" {
 namespace flippy {
 
 static const std::unordered_map<Format, FileFormat> formatInfo = {
-    { Format::FDI, { 4096, 1261568, 1024, 1, 8, 2, 77, 192 } },
-    { Format::HDM, {    0, 1261568, 1024, 1, 8, 2, 77, 192 } },
+    { Format::PC98_FDI, { 4096, 1261568, 1024, 1,  8, 2, 77, 192 } },
+    { Format::PC98_HDM, {    0, 1261568, 1024, 1,  8, 2, 77, 192 } },
+    { Format::DOS_144,  {    0, 1474560,  512, 1, 18, 2, 80, 224 } },
+    { Format::DOS_120,  {    0, 1228800,  512, 1, 15, 2, 80, 224 } },
+    { Format::DOS_720,  {    0,  737280,  512, 1,  9, 2, 80, 224 } },
+    { Format::DOS_720,  {    0,  368640,  512, 1,  9, 2, 40, 224 } }
 };
 
 static inline Format formatFromPath(std::filesystem::path path)
 {
+    if (std::filesystem::is_regular_file(path)) {
+        // try to look up based on file size
+        const auto size = std::filesystem::file_size(path);
+        for (const auto& info : formatInfo) {
+            if (info.second.headerByteSize + info.second.dataByteSize == size) {
+                return info.first;
+            }
+        }
+    }
     if (path.extension() == ".fdi") {
-        return Format::FDI;
+        return Format::PC98_FDI;
     } else if (path.extension() == ".hdm") {
-        return Format::HDM;
+        return Format::PC98_HDM;
+    } else if (path.extension() == ".ima") {
+        return Format::DOS_144;
     }
     return Format::Auto;
 }
@@ -260,7 +275,7 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
     const auto& info = infoIt->second;
 
     auto result = create(path, info);
-    if (result.has_value() && format == Format::FDI) {
+    if (result.has_value() && format == Format::PC98_FDI) {
         // write 4k header
         // ### should ensure this is always little endian
         std::vector<uint32_t> header;
