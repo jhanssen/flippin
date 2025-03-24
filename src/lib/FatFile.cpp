@@ -23,7 +23,7 @@ const std::filesystem::path& FatFile::longPath() const
     return mLong.empty() ? mShort : mLong;
 }
 
-Result<std::size_t> FatFile::size() const
+std::size_t FatFile::size() const
 {
     return mSize;
 }

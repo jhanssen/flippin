@@ -18,7 +18,7 @@ public:
 
     const std::filesystem::path& shortPath() const override;
     const std::filesystem::path& longPath() const override;
-    virtual Result<std::size_t> size() const override;
+    virtual std::size_t size() const override;
     virtual Result<std::vector<uint8_t>> read(std::size_t size) const override;
     virtual Result<std::size_t> write(const std::vector<uint8_t>& data) override;
     virtual Result<void> close() override;

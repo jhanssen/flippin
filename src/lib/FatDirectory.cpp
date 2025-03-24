@@ -510,10 +510,6 @@ Result<void> FatDirectory::rmdir(std::filesystem::path name, Force force, Recurs
     return std::move(result);
 }
 
-Result<void> FatDirectory::copy(std::filesystem::path src, std::filesystem::path dst)
-{
-}
-
 Result<void> FatDirectory::rename(std::filesystem::path src, std::filesystem::path dst)
 {
 }
@@ -548,6 +544,40 @@ Result<std::shared_ptr<File>> FatDirectory::openFile(std::filesystem::path name,
     }
 
     return std::shared_ptr<FatFile>(new FatFile(mFat, std::move(fentry.shortname), std::move(fentry.longname), fentry.dir, fentry.index));
+}
+
+Result<void> FatDirectory::copy(std::filesystem::path src, std::filesystem::path dst)
+{
+    // just a convenience wrapper around the file api for now, could possibly be optimized
+    auto maybesrcfile = openFile(src, OpenFileMode::Read);
+    if (!maybesrcfile.has_value()) {
+        return std::unexpected(std::move(maybesrcfile).error());
+    }
+    auto maybedstfile = openFile(dst, OpenFileMode::Write | OpenFileMode::Truncate);
+    if (!maybedstfile.has_value()) {
+        return std::unexpected(std::move(maybedstfile).error());
+    }
+
+    auto srcfile = std::move(maybesrcfile).value();
+    auto dstfile = std::move(maybedstfile).value();
+
+    auto rem = srcfile->size();
+    while (rem > 0) {
+        auto readsize = std::min<std::size_t>(rem, 32768);
+
+        auto data = srcfile->read(readsize);
+        if (!data.has_value()) {
+            return std::unexpected(std::move(data).error());
+        }
+
+        auto writeresult = dstfile->write(data.value());
+        if (!writeresult.has_value()) {
+            return std::unexpected(std::move(writeresult).error());
+        }
+        rem -= readsize;
+    }
+
+    return {};
 }
 
 const std::filesystem::path& FatDirectory::shortPath() const
