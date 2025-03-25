@@ -2,6 +2,7 @@
 
 #include "Entry.h"
 #include <filesystem>
+#include <vector>
 #include <cstddef>
 
 namespace flippy {

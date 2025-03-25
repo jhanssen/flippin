@@ -31,7 +31,7 @@ Result<std::vector<uint8_t>> read(const std::filesystem::path& path)
 
     fclose(f);
 
-    return std::move(data);
+    return data;
 }
 
 Result<void> write(const std::filesystem::path& path, const std::vector<uint8_t>& data)
