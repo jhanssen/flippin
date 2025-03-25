@@ -7,6 +7,7 @@ set(SOURCES
     DeltreeCommand.cpp
     DirCommand.cpp
     FilesystemCommand.cpp
+    MdCommand.cpp
     ReadCommand.cpp
     RenCommand.cpp
     WriteCommand.cpp
