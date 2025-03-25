@@ -19,7 +19,7 @@ int DirCommand::execute(std::filesystem::path path, Format format, std::vector<s
 
     const auto& dir = directory();
     if (a.size() > 0) {
-        auto maybechdir = dir->chdir(a[0]);
+        auto maybechdir = dir->cd(a[0]);
         if (!maybechdir) {
             fmt::print(stderr, "{}: cannot change directory: {}\n", name(), maybechdir.error().message());
             return 1;

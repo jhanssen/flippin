@@ -37,14 +37,12 @@ public:
     virtual const std::filesystem::path& longPath() const = 0;
 
     virtual Result<std::vector<Entry>> dir() const = 0;
-
-    virtual Result<void> chdir(std::filesystem::path name) = 0;
-    virtual Result<void> mkdir(std::filesystem::path name, Recursive recursive = Recursive::No) = 0;
-    virtual Result<void> rmdir(std::filesystem::path name, Force force = Force::No, Recursive recursive = Recursive::No) = 0;
-
-    virtual Result<void> rm(std::filesystem::path name) = 0;
+    virtual Result<void> cd(std::filesystem::path name) = 0;
+    virtual Result<void> md(std::filesystem::path name, Recursive recursive = Recursive::No) = 0;
+    virtual Result<void> deltree(std::filesystem::path name, Force force = Force::No, Recursive recursive = Recursive::No) = 0;
+    virtual Result<void> del(std::filesystem::path name) = 0;
     virtual Result<void> copy(std::filesystem::path src, std::filesystem::path dst) = 0;
-    virtual Result<void> rename(std::filesystem::path src, std::filesystem::path dst) = 0;
+    virtual Result<void> ren(std::filesystem::path src, std::filesystem::path dst) = 0;
 
     virtual Result<std::shared_ptr<File>> openFile(std::filesystem::path name, OpenFileMode mode) = 0;
 

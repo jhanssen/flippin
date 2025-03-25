@@ -124,7 +124,7 @@ Result<std::vector<Entry>> FatDirectory::dir() const
     return buildEntries(mDirectory, mIndex);
 }
 
-Result<void> FatDirectory::mkdirShort(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists)
+Result<void> FatDirectory::mdShort(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists)
 {
     unit* dir;
     int index;
@@ -133,7 +133,7 @@ Result<void> FatDirectory::mkdirShort(const std::filesystem::path& currentPath, 
     if (!currentPath.empty()) {
         npath = fatstoragepath(currentPath.c_str());
         if (fatlookuppath(mFat->f, mTarget, npath, &dir, &index) != 0) {
-            return std::unexpected(Error("mkdir: pre path does not exist"));
+            return std::unexpected(Error("md: pre path does not exist"));
         }
         const auto nd = fatentrygetfirstcluster(dir, index, fatbits(mFat->f));
         dir = fatclusterread(mFat->f, nd);
@@ -149,21 +149,21 @@ Result<void> FatDirectory::mkdirShort(const std::filesystem::path& currentPath, 
     if (fatlookupfile(mFat->f, target, npath, &dir, &index) == 0) {
         free(npath);
         if (failIfExists) {
-            return std::unexpected(Error("mkdir: path already exists"));
+            return std::unexpected(Error("md: path already exists"));
         }
         return {};
     }
 
     fatcreatefile(mFat->f, target, npath, &dir, &index);
 
-    auto ret = mkdirFinalize(dir, index, target);
+    auto ret = mdFinalize(dir, index, target);
 
     free(npath);
 
     return std::move(ret);
 }
 
-Result<void> FatDirectory::mkdirLong(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists)
+Result<void> FatDirectory::mdLong(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists)
 {
     unit* dir;
     int index;
@@ -172,7 +172,7 @@ Result<void> FatDirectory::mkdirLong(const std::filesystem::path& currentPath, c
     if (!currentPath.empty()) {
         npath = fatstoragepathlong(currentPath.c_str());
         if (fatlookuppathlong(mFat->f, mTarget, npath, &dir, &index) != 0) {
-            return std::unexpected(Error("mkdir: long pre path does not exist"));
+            return std::unexpected(Error("md: long pre path does not exist"));
         }
         const auto nd = fatentrygetfirstcluster(dir, index, fatbits(mFat->f));
         dir = fatclusterread(mFat->f, nd);
@@ -189,26 +189,26 @@ Result<void> FatDirectory::mkdirLong(const std::filesystem::path& currentPath, c
     if (fatlookupfilelong(mFat->f, target, npath, &dir, &index) == 0) {
         free(npath);
         if (failIfExists) {
-            return std::unexpected(Error("mkdir: path already exists"));
+            return std::unexpected(Error("md: path already exists"));
         }
         return {};
     }
 
     fatcreatefilepathlong(mFat->f, target, npath, &dir, &index);
 
-    auto ret = mkdirFinalize(dir, index, target);
+    auto ret = mdFinalize(dir, index, target);
 
     free(npath);
 
     return std::move(ret);
 }
 
-Result<void> FatDirectory::mkdirFinalize(unit* dir, int index, int32_t target)
+Result<void> FatDirectory::mdFinalize(unit* dir, int index, int32_t target)
 {
     fatentrysetattributes(dir, index, 0x10);
     auto next = fatclusterfindfreebetween(mFat->f, mFirst, mLast, -1);
     if (next == FAT_ERR) {
-        return std::unexpected(Error("mkdir: long filesystem full"));
+        return std::unexpected(Error("md: long filesystem full"));
     }
     fatentrysetfirstcluster(dir, index, fatbits(mFat->f), next);
     fatsetnextcluster(mFat->f, next, FAT_EOF);
@@ -229,10 +229,10 @@ Result<void> FatDirectory::mkdirFinalize(unit* dir, int index, int32_t target)
     return {};
 }
 
-Result<void> FatDirectory::mkdir(std::filesystem::path name, Recursive recursive)
+Result<void> FatDirectory::md(std::filesystem::path name, Recursive recursive)
 {
     if (!name.is_relative()) {
-        return std::unexpected(Error("mkdir: Only relative paths are supported"));
+        return std::unexpected(Error("md: Only relative paths are supported"));
     }
 
     char* npath;
@@ -252,12 +252,12 @@ Result<void> FatDirectory::mkdir(std::filesystem::path name, Recursive recursive
             parts.push_back({std::filesystem::path(npath), true});
             free(npath);
         } else {
-            return std::unexpected(Error("mkdir: Invalid directory name"));
+            return std::unexpected(Error("md: Invalid directory name"));
         }
     }
 
     if (parts.size() > 1 && recursive == Recursive::No) {
-        return std::unexpected(Error("mkdir: Recursive is required for multiple mkdir parts"));
+        return std::unexpected(Error("md: Recursive is required for multiple md parts"));
     }
 
     std::filesystem::path currentPath;
@@ -267,13 +267,13 @@ Result<void> FatDirectory::mkdir(std::filesystem::path name, Recursive recursive
         const bool failIfExists = (idx == size - 1) ? true : false;
         if (part.second) {
             // long name
-            auto result = mkdirLong(currentPath, part.first, failIfExists);
+            auto result = mdLong(currentPath, part.first, failIfExists);
             if (!result) {
                 return result;
             }
         } else {
             // short name
-            auto result = mkdirShort(currentPath, part.first, failIfExists);
+            auto result = mdShort(currentPath, part.first, failIfExists);
             if (!result) {
                 return result;
             }
@@ -380,9 +380,9 @@ Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path nam
     return FatEntry { dir, longdir, index, longindex, created, std::move(shortname), std::move(longname) };
 }
 
-Result<void> FatDirectory::chdir(std::filesystem::path name)
+Result<void> FatDirectory::cd(std::filesystem::path name)
 {
-    auto maybefentry = openEntry(name, OpenFileMode::Read, Recursive::Yes, "chdir");
+    auto maybefentry = openEntry(name, OpenFileMode::Read, Recursive::Yes, "cd");
     if (!maybefentry.has_value()) {
         return std::unexpected(std::move(maybefentry).error());
     }
@@ -408,7 +408,7 @@ Result<void> FatDirectory::chdir(std::filesystem::path name)
     return {};
 }
 
-Result<void> FatDirectory::rm(unit* dir, int index, unit* longdir, int longindex)
+Result<void> FatDirectory::del(unit* dir, int index, unit* longdir, int longindex)
 {
     auto next = fatentrygetfirstcluster(dir, index, fatbits(mFat->f));
     for (auto cl = next; cl != FAT_EOF && cl != FAT_UNUSED; cl = next) {
@@ -425,33 +425,33 @@ Result<void> FatDirectory::rm(unit* dir, int index, unit* longdir, int longindex
     return {};
 }
 
-Result<void> FatDirectory::rm(std::filesystem::path name)
+Result<void> FatDirectory::del(std::filesystem::path name)
 {
-    auto maybefentry = openEntry(name, OpenFileMode::Read, Recursive::Yes, "rm");
+    auto maybefentry = openEntry(name, OpenFileMode::Read, Recursive::Yes, "del");
     if (!maybefentry.has_value()) {
         return std::unexpected(std::move(maybefentry).error());
     }
     auto fentry = std::move(maybefentry).value();
     assert(!fentry.created);
     if (fatreferenceisdirectory(fentry.dir, fentry.index, 0)) {
-        return std::unexpected(Error("rm: Can't remove directory (use rmdir): {}", name));
+        return std::unexpected(Error("rm: Can't remove directory (use deltree): {}", name));
     }
-    auto result = rm(fentry.dir, fentry.index, fentry.longdir, fentry.longindex);
+    auto result = del(fentry.dir, fentry.index, fentry.longdir, fentry.longindex);
     fatentrydelete(fentry.dir, fentry.index);
     fatflush(mFat->f);
     return std::move(result);
 }
 
-Result<void> FatDirectory::rmdir(std::filesystem::path name, Force force, Recursive recursive)
+Result<void> FatDirectory::deltree(std::filesystem::path name, Force force, Recursive recursive)
 {
-    auto maybefentry = openEntry(name, OpenFileMode::Read, Recursive::Yes, "rmdir");
+    auto maybefentry = openEntry(name, OpenFileMode::Read, Recursive::Yes, "deltree");
     if (!maybefentry.has_value()) {
         return std::unexpected(std::move(maybefentry).error());
     }
     auto fentry = std::move(maybefentry).value();
     assert(!fentry.created);
     if (!fatreferenceisdirectory(fentry.dir, fentry.index, 0)) {
-        return std::unexpected(Error("rmdir: Can't remove a non-directory (use rm): {}", name));
+        return std::unexpected(Error("rmdir: Can't remove a non-directory (use del): {}", name));
     }
 
     auto removeEntry = [&](unit* dir, int index) -> Result<void> {
@@ -497,12 +497,12 @@ Result<void> FatDirectory::rmdir(std::filesystem::path name, Force force, Recurs
         }
 
         for (const auto& file : toremove.files) {
-            rm(std::get<0>(file), std::get<1>(file), nullptr, 0);
+            del(std::get<0>(file), std::get<1>(file), nullptr, 0);
             fatdeletelong(mFat->f, std::get<0>(file), std::get<1>(file));
             fatentrydelete(std::get<0>(file), std::get<1>(file));
         }
         for (const auto& file : toremove.dirs) {
-            rm(std::get<0>(file), std::get<1>(file), nullptr, 0);
+            del(std::get<0>(file), std::get<1>(file), nullptr, 0);
             fatdeletelong(mFat->f, std::get<0>(file), std::get<1>(file));
             fatentrydelete(std::get<0>(file), std::get<1>(file));
         }
@@ -515,7 +515,7 @@ Result<void> FatDirectory::rmdir(std::filesystem::path name, Force force, Recurs
     return std::move(result);
 }
 
-Result<void> FatDirectory::rename(std::filesystem::path src, std::filesystem::path dst)
+Result<void> FatDirectory::ren(std::filesystem::path src, std::filesystem::path dst)
 {
     auto maybesrc = openEntry(src, OpenFileMode::Read, Recursive::Yes, "rename, src");
     if (!maybesrc.has_value()) {
