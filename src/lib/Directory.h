@@ -1,6 +1,5 @@
 #pragma once
 
-#include "DirectoryIterator.h"
 #include "Entry.h"
 #include <Flags.h>
 #include <Result.h>
@@ -59,8 +58,5 @@ struct FlagTraits<Directory::OpenFileMode>
 {
     static constexpr bool isBitmask = true;
 };
-
-using EntryIterator = EntryIteratorBase<Directory>;
-using EntryRange = EntryRangeBase<Directory>;
 
 } // namespace flippy
