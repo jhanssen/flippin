@@ -17,7 +17,7 @@ int DeltreeCommand::execute(std::filesystem::path path, Format format, std::vect
     }
 
     const auto& dir = directory();
-    auto res = dir->deltree(a[0]);
+    auto res = dir->deltree(a[0], Directory::Force::Yes, Directory::Recursive::Yes);
     if (!res) {
         fmt::print(stderr, "{}: cannot deltree directory: {}\n", name(), res.error().message());
         return 1;
