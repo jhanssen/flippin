@@ -1,6 +1,7 @@
 set(SOURCES
     main.cpp
     CopyCommand.cpp
+    CreateCommand.cpp
     FilesystemCommand.cpp
     WriteCommand.cpp
     Slashes.cpp

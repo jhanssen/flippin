@@ -1,5 +1,6 @@
 #include "Command.h"
 #include "CopyCommand.h"
+#include "CreateCommand.h"
 #include "WriteCommand.h"
 #include "Slashes.h"
 #include <Args.h>
@@ -69,6 +70,7 @@ int main(int argc, char** argv, char** envp)
 
     registerFormats();
     registerCommand(std::make_unique<CopyCommand>());
+    registerCommand(std::make_unique<CreateCommand>());
     registerCommand(std::make_unique<WriteCommand>());
 
     std::filesystem::path image = std::filesystem::path(args.value<std::string>("img"));
