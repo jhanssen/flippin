@@ -5,6 +5,7 @@
 #include "DelCommand.h"
 #include "DirCommand.h"
 #include "ReadCommand.h"
+#include "RenCommand.h"
 #include "WriteCommand.h"
 #include "Slashes.h"
 #include <Args.h>
@@ -76,6 +77,7 @@ int main(int argc, char** argv, char** envp)
     registerCommand(std::make_unique<DelCommand>());
     registerCommand(std::make_unique<DirCommand>());
     registerCommand(std::make_unique<ReadCommand>());
+    registerCommand(std::make_unique<RenCommand>());
     registerCommand(std::make_unique<WriteCommand>());
 
     std::filesystem::path image = std::filesystem::path(args.value<std::string>("img"));

@@ -7,6 +7,7 @@ set(SOURCES
     DirCommand.cpp
     FilesystemCommand.cpp
     ReadCommand.cpp
+    RenCommand.cpp
     WriteCommand.cpp
     Slashes.cpp
 )
