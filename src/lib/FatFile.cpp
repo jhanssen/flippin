@@ -59,7 +59,7 @@ Result<std::vector<uint8_t>> FatFile::read(std::size_t size) const
         data = fatunitgetdata(cluster);
         const auto clusterSize = cluster->size;
 
-        assert(mReadClusterOffset < clusterSize);
+        assert( static_cast<int>(mReadClusterOffset) < clusterSize);
         const auto readsize = std::min<std::size_t>(remaining, clusterSize - mReadClusterOffset);
         result.resize(result.size() + readsize);
         memcpy(result.data() + result.size() - readsize, data + mReadClusterOffset, readsize);
@@ -97,7 +97,7 @@ Result<std::size_t> FatFile::write(const std::vector<uint8_t>& data)
     const auto nowsize = fatentrygetsize(mDirectory, mIndex);
     // skip to last cluster of the file
     if (mWriteOffset == 0 && mCluster == 0) {
-        const auto bpc = fatbytespercluster(mFat->f);
+        const auto bpc = static_cast<std::size_t>(fatbytespercluster(mFat->f));
         auto remsize = nowsize;
 
         mCluster = fatentrygetfirstcluster(mDirectory, mIndex, fatbits(mFat->f));

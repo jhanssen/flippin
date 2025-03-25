@@ -300,7 +300,7 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
         lseek(fd, currentPos, SEEK_SET);
     }
 
-    return std::move(result);
+    return result;
 }
 
 } // namespace flippy

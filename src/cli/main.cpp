@@ -111,5 +111,5 @@ int main(int argc, char** argv, char** envp)
         format = fmt->second.first;
     }
 
-    return cmd->second->execute(std::move(image), format, std::move(convertSlashes(args.freeforms())));
+    return cmd->second->execute(std::move(image), format, convertSlashes(args.freeforms()));
 }

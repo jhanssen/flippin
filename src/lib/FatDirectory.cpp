@@ -113,7 +113,7 @@ std::vector<Entry> FatDirectory::buildEntries(unit* startDir, int startIndex) co
         }
     }
 
-    return std::move(entries);
+    return entries;
 }
 
 Result<std::vector<Entry>> FatDirectory::dir() const
@@ -160,7 +160,7 @@ Result<void> FatDirectory::mdShort(const std::filesystem::path& currentPath, con
 
     free(npath);
 
-    return std::move(ret);
+    return ret;
 }
 
 Result<void> FatDirectory::mdLong(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists)
@@ -200,7 +200,7 @@ Result<void> FatDirectory::mdLong(const std::filesystem::path& currentPath, cons
 
     free(npath);
 
-    return std::move(ret);
+    return ret;
 }
 
 Result<void> FatDirectory::mdFinalize(unit* dir, int index, int32_t target)
@@ -439,7 +439,7 @@ Result<void> FatDirectory::del(std::filesystem::path name)
     auto result = del(fentry.dir, fentry.index, fentry.longdir, fentry.longindex);
     fatentrydelete(fentry.dir, fentry.index);
     fatflush(mFat->f);
-    return std::move(result);
+    return result;
 }
 
 Result<void> FatDirectory::deltree(std::filesystem::path name, Force force, Recursive recursive)
@@ -512,7 +512,7 @@ Result<void> FatDirectory::deltree(std::filesystem::path name, Force force, Recu
 
     auto result = removeEntry(fentry.dir, fentry.index);
     fatflush(mFat->f);
-    return std::move(result);
+    return result;
 }
 
 Result<void> FatDirectory::ren(std::filesystem::path src, std::filesystem::path dst)

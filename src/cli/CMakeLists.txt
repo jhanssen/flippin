@@ -13,3 +13,8 @@ set(SOURCES
 
 add_executable(flippy ${SOURCES})
 target_link_libraries(flippy Flippy::Common Flippy::Lib fmt::fmt)
+
+target_compile_options(flippy PRIVATE
+  $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
+)

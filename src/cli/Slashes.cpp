@@ -7,7 +7,7 @@ std::string convertSlashes(std::string input)
 {
     // replace all '\\' with '/'
     std::replace(input.begin(), input.end(), '\\', '/');
-    return std::move(input);
+    return input;
 }
 
 std::vector<std::string> convertSlashes(std::vector<std::string> input)
@@ -15,9 +15,9 @@ std::vector<std::string> convertSlashes(std::vector<std::string> input)
     std::vector<std::string> result;
     result.reserve(input.size());
     for (auto& str : input) {
-        result.push_back(std::move(convertSlashes(std::move(str))));
+        result.push_back(convertSlashes(std::move(str)));
     }
-    return std::move(result);
+    return result;
 }
 
 } // namespace flippy
