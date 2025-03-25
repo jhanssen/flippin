@@ -1,9 +1,9 @@
-#include "File.h"
+#include "FileIO.h"
 
 #include <cstdio>
 
 namespace flippy {
-namespace file {
+namespace fileio {
 
 Result<std::vector<uint8_t>> read(const std::filesystem::path& path)
 {

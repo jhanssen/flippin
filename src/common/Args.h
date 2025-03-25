@@ -34,6 +34,7 @@ public:
 
     std::size_t freeformSize() const;
     std::string freeformValue(std::size_t idx) const;
+    std::vector<std::string> freeforms() const;
 
 private:
     Args();
@@ -132,6 +133,11 @@ inline std::string Args::freeformValue(std::size_t idx) const
     if (idx >= mFreeform.size())
         return std::string();
     return mFreeform[idx];
+}
+
+inline std::vector<std::string> Args::freeforms() const
+{
+    return mFreeform;
 }
 
 class ArgsParser

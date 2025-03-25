@@ -6,7 +6,7 @@
 #include <cstdint>
 
 namespace flippy {
-namespace file {
+namespace fileio {
 
 Result<std::vector<uint8_t>> read(const std::filesystem::path& path);
 Result<void> write(const std::filesystem::path& path, const std::vector<uint8_t>& data);

@@ -1,5 +1,5 @@
 set(SOURCES
-    File.cpp
+    FileIO.cpp
 )
 
 add_library(flippy_common OBJECT ${SOURCES})
