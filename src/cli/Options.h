@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <cstddef>
 
 namespace flippy {
 
@@ -17,8 +18,12 @@ public:
 
     bool has(const char opt) const;
 
+    std::size_t nonOptions() const { return mNonOptions.size(); }
+    std::size_t nonOption(std::size_t idx) const { return mNonOptions[idx]; }
+
 private:
     std::string mOptions;
+    std::vector<std::size_t> mNonOptions;
 };
 
 inline bool Options::has(const char opt) const

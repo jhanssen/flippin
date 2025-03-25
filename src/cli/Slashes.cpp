@@ -7,6 +7,11 @@ std::string convertSlashes(std::string input)
 {
     // replace all '\\' with '/'
     std::replace(input.begin(), input.end(), '\\', '/');
+    if (input.size() > 2 && input[0] == '/') {
+        // remove leading '/' to avoid this being confused with an option
+        // this should be fine since we start at the root anyways
+        input.erase(0, 1);
+    }
     return input;
 }
 
