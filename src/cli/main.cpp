@@ -6,6 +6,7 @@
 #include "DeltreeCommand.h"
 #include "DirCommand.h"
 #include "MdCommand.h"
+#include "RdCommand.h"
 #include "ReadCommand.h"
 #include "RenCommand.h"
 #include "WriteCommand.h"
@@ -85,6 +86,7 @@ int main(int argc, char** argv, char** envp)
     registerCommand(std::make_unique<DeltreeCommand>());
     registerCommand(std::make_unique<DirCommand>());
     registerCommand(std::make_unique<MdCommand>());
+    registerCommand(std::make_unique<RdCommand>());
     registerCommand(std::make_unique<ReadCommand>());
     registerCommand(std::make_unique<RenCommand>());
     registerCommand(std::make_unique<WriteCommand>());

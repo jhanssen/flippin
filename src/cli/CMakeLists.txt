@@ -8,6 +8,7 @@ set(SOURCES
     DirCommand.cpp
     FilesystemCommand.cpp
     MdCommand.cpp
+    RdCommand.cpp
     ReadCommand.cpp
     RenCommand.cpp
     WriteCommand.cpp
