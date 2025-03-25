@@ -35,7 +35,7 @@ static std::vector<std::tuple<std::string, Format, std::string>> formats;
 
 static void syntax()
 {
-    fmt::print("Syntax: flippy --img <image> --cmd <command> [command args...] [--fmt <format>]\n\n");
+    fmt::print("Syntax: flippy [--fmt <format>] --img <image> --cmd <command> [command args...] [-- [extra command args...]]\n\n");
     fmt::print("Commands:\n\n");
     for (const auto& cmd : commands) {
         const auto& syntax = cmd.second->syntax();
