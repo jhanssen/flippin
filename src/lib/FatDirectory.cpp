@@ -392,9 +392,16 @@ Result<void> FatDirectory::chdir(std::filesystem::path name)
         return std::unexpected(Error("chdir: Can't chdir into a non-directory: '{}'", name));
     }
 
-    mDirectory = fentry.dir;
-    mIndex = fentry.index;
-    mTarget = fentry.dir->n;
+    auto next = fatentrygetfirstcluster(fentry.dir, fentry.index, fatbits(mFat->f));
+    auto dir = fatclusterread(mFat->f, next);
+    if (dir == nullptr) {
+        return std::unexpected(Error("chdir: Failed to read directory: '{}'", name));
+    }
+
+    mTarget = next;
+    mDirectory = dir;
+    mIndex = 0;
+
     mShort = std::move(fentry.shortname);
     mLong = std::move(fentry.longname);
 
