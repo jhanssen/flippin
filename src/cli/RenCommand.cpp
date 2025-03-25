@@ -23,7 +23,7 @@ int RenCommand::execute(std::filesystem::path path, Format format, std::vector<s
         return 1;
     }
 
-    fmt::print("{}: copied file, {} -> {}\n", name(), a[0], a[1]);
+    fmt::print("{}: renamed file, {} -> {}\n", name(), a[0], a[1]);
 
     return 0;
 }
