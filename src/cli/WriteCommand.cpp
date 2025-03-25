@@ -48,6 +48,6 @@ std::vector<std::string> WriteCommand::syntax() const
 {
     return {
         "write <source> <destination>",
-        "  Writes a file to an image"
+        "  Transfers a file from the host to an image"
     };
 }

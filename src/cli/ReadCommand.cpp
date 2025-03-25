@@ -48,6 +48,6 @@ std::vector<std::string> ReadCommand::syntax() const
 {
     return {
         "read <source> <destination>",
-        "  Reads a file from an image"
+        "  Transfers a file from an image to the host"
     };
 }

@@ -50,8 +50,8 @@ static void syntax()
 
 static void registerFormats()
 {
-    formats["FDI"] = { Format::PC98_FDI, "PC-98 FDI" };
-    formats["HDM"] = { Format::PC98_HDM, "PC-98 HDM" };
+    formats["FDI"] = { Format::PC98_FDI, "PC-98 FDI, 1.23M" };
+    formats["HDM"] = { Format::PC98_HDM, "PC-98 HDM, 1.23M" };
     formats["144M"] = { Format::DOS_144, "DOS 1.44M" };
     formats["120M"] = { Format::DOS_120, "DOS 1.20M" };
     formats["720K"] = { Format::DOS_720, "DOS 720K" };
