@@ -3,6 +3,7 @@
 #include "CopyCommand.h"
 #include "CreateCommand.h"
 #include "DelCommand.h"
+#include "DeltreeCommand.h"
 #include "DirCommand.h"
 #include "ReadCommand.h"
 #include "RenCommand.h"
@@ -80,6 +81,7 @@ int main(int argc, char** argv, char** envp)
     registerCommand(std::make_unique<CopyCommand>());
     registerCommand(std::make_unique<CreateCommand>());
     registerCommand(std::make_unique<DelCommand>());
+    registerCommand(std::make_unique<DeltreeCommand>());
     registerCommand(std::make_unique<DirCommand>());
     registerCommand(std::make_unique<ReadCommand>());
     registerCommand(std::make_unique<RenCommand>());

@@ -4,6 +4,7 @@ set(SOURCES
     CopyCommand.cpp
     CreateCommand.cpp
     DelCommand.cpp
+    DeltreeCommand.cpp
     DirCommand.cpp
     FilesystemCommand.cpp
     ReadCommand.cpp
