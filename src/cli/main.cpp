@@ -8,10 +8,7 @@
 #include "WriteCommand.h"
 #include "Slashes.h"
 #include <Args.h>
-#include <File.h>
-#include <Filesystem.h>
 #include <Format.h>
-#include <Directory.h>
 #include <fmt/format.h>
 #include <fmt/std.h>
 #include <string>
