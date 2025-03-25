@@ -2,6 +2,7 @@ set(SOURCES
     main.cpp
     CopyCommand.cpp
     CreateCommand.cpp
+    DirCommand.cpp
     FilesystemCommand.cpp
     WriteCommand.cpp
     Slashes.cpp

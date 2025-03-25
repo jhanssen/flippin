@@ -1,6 +1,7 @@
 #include "Command.h"
 #include "CopyCommand.h"
 #include "CreateCommand.h"
+#include "DirCommand.h"
 #include "WriteCommand.h"
 #include "Slashes.h"
 #include <Args.h>
@@ -11,6 +12,7 @@
 #include <fmt/format.h>
 #include <fmt/std.h>
 #include <string>
+#include <map>
 #include <unordered_map>
 
 using namespace flippy;
@@ -24,7 +26,7 @@ void print_indented(int indent, fmt::format_string<Args...> format_str, Args&&..
 }
 */
 
-static std::unordered_map<std::string, std::unique_ptr<Command>> commands;
+static std::map<std::string, std::unique_ptr<Command>> commands;
 static std::unordered_map<std::string, std::pair<Format, std::string>> formats;
 
 static void syntax()
@@ -32,10 +34,9 @@ static void syntax()
     fmt::print("Flippy: syntax: flippy --img <image> --cmd <command> [command args] [--fmt <format>]\n");
     fmt::print("Commands:\n");
     for (const auto& cmd : commands) {
-        fmt::print("  {}:\n", cmd.first);
         const auto& syntax = cmd.second->syntax();
         for (const auto& syn : syntax) {
-            fmt::print("    {}\n", syn);
+            fmt::print("  {}\n", syn);
         }
         fmt::print("\n");
     }
@@ -71,6 +72,7 @@ int main(int argc, char** argv, char** envp)
     registerFormats();
     registerCommand(std::make_unique<CopyCommand>());
     registerCommand(std::make_unique<CreateCommand>());
+    registerCommand(std::make_unique<DirCommand>());
     registerCommand(std::make_unique<WriteCommand>());
 
     std::filesystem::path image = std::filesystem::path(args.value<std::string>("img"));
