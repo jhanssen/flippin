@@ -12,9 +12,10 @@
 #include <Format.h>
 #include <fmt/format.h>
 #include <fmt/std.h>
-#include <string>
 #include <map>
-#include <unordered_map>
+#include <string>
+#include <tuple>
+#include <vector>
 
 using namespace flippy;
 
@@ -28,7 +29,7 @@ void print_indented(int indent, fmt::format_string<Args...> format_str, Args&&..
 */
 
 static std::map<std::string, std::unique_ptr<Command>> commands;
-static std::unordered_map<std::string, std::pair<Format, std::string>> formats;
+static std::vector<std::tuple<std::string, Format, std::string>> formats;
 
 static void syntax()
 {
@@ -43,19 +44,21 @@ static void syntax()
     }
     fmt::print("Formats:\n\n");
     for (const auto& fmt : formats) {
-        fmt::print("  \"{}\" ({})\n", fmt.first, fmt.second.second);
+        fmt::print("  \"{}\" ({})\n", std::get<0>(fmt), std::get<2>(fmt));
     }
     fmt::print("\n");
 }
 
 static void registerFormats()
 {
-    formats["FDI"] = { Format::PC98_FDI, "PC-98 FDI, 1.23M" };
-    formats["HDM"] = { Format::PC98_HDM, "PC-98 HDM, 1.23M" };
-    formats["144M"] = { Format::DOS_144, "DOS 1.44M" };
-    formats["120M"] = { Format::DOS_120, "DOS 1.20M" };
-    formats["720K"] = { Format::DOS_720, "DOS 720K" };
-    formats["360K"] = { Format::DOS_360, "DOS 360K" };
+    formats = {
+        { "FDI", Format::PC98_FDI, "PC-98 FDI, 1.23M" },
+        { "HDM", Format::PC98_HDM, "PC-98 HDM, 1.23M" },
+        { "144M", Format::DOS_144, "DOS 1.44M" },
+        { "120M", Format::DOS_120, "DOS 1.20M" },
+        { "720K", Format::DOS_720, "DOS 720K" },
+        { "360K", Format::DOS_360, "DOS 360K" }
+    };
 }
 
 static void registerCommand(std::unique_ptr<Command> cmd)
@@ -72,6 +75,7 @@ int main(int argc, char** argv, char** envp)
         });
 
     registerFormats();
+
     registerCommand(std::make_unique<CatCommand>());
     registerCommand(std::make_unique<CopyCommand>());
     registerCommand(std::make_unique<CreateCommand>());
@@ -105,13 +109,17 @@ int main(int argc, char** argv, char** envp)
     Format format = Format::Auto;
     const std::string& fmtname = args.value<std::string>("fmt");
     if (!fmtname.empty()) {
-        const auto& fmt = formats.find(fmtname);
-        if (fmt == formats.end()) {
+        for (const auto& fmt : formats) {
+            if (std::get<0>(fmt) == fmtname) {
+                format = std::get<1>(fmt);
+                break;
+            }
+        }
+        if (format == Format::Auto) {
             fmt::print(stderr, "Flippy: unknown format '{}'\n", fmtname);
             syntax();
             return 3;
         }
-        format = fmt->second.first;
     }
 
     return cmd->second->execute(std::move(image), format, convertSlashes(args.freeforms()));
