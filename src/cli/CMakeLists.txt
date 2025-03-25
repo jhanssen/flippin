@@ -10,6 +10,7 @@ set(SOURCES
     ReadCommand.cpp
     RenCommand.cpp
     WriteCommand.cpp
+    Options.cpp
     Slashes.cpp
 )
 
