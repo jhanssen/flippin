@@ -7,7 +7,7 @@ namespace flippy {
 class DelCommand : public FilesystemCommand
 {
 public:
-    DelCommand() : FilesystemCommand("copy") {}
+    DelCommand() : FilesystemCommand("del") {}
     virtual ~DelCommand() override {}
 
     virtual int execute(std::filesystem::path path, Format format, std::vector<std::string> args) override;
