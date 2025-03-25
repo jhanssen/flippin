@@ -32,8 +32,8 @@ static std::unordered_map<std::string, std::pair<Format, std::string>> formats;
 
 static void syntax()
 {
-    fmt::print("Flippy: syntax: flippy --img <image> --cmd <command> [command args] [--fmt <format>]\n");
-    fmt::print("Commands:\n");
+    fmt::print("Syntax: flippy --img <image> --cmd <command> [command args...] [--fmt <format>]\n\n");
+    fmt::print("Commands:\n\n");
     for (const auto& cmd : commands) {
         const auto& syntax = cmd.second->syntax();
         for (const auto& syn : syntax) {
@@ -41,10 +41,11 @@ static void syntax()
         }
         fmt::print("\n");
     }
-    fmt::print("Formats:\n");
+    fmt::print("Formats:\n\n");
     for (const auto& fmt : formats) {
         fmt::print("  \"{}\" ({})\n", fmt.first, fmt.second.second);
     }
+    fmt::print("\n");
 }
 
 static void registerFormats()
