@@ -27,8 +27,13 @@ class Filesystem
 {
 public:
     static Result<std::shared_ptr<Directory>> root(std::filesystem::path path, Format format = Format::Auto);
+
     static Result<std::shared_ptr<Directory>> create(std::filesystem::path path, Format format = Format::Auto);
-    static Result<std::shared_ptr<Directory>> create(std::filesystem::path path, FileFormat format);
+    static Result<std::shared_ptr<Directory>> createFloppy(std::filesystem::path path, FileFormat format);
+    static Result<std::shared_ptr<Directory>> createIso(std::filesystem::path path);
+
+private:
+    static Result<std::shared_ptr<Directory>> rootIso(std::filesystem::path path);
 
 private:
     Filesystem() { }

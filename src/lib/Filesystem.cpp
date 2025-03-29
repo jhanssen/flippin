@@ -35,8 +35,15 @@ static inline Format formatFromPath(const std::filesystem::path& path)
         return Format::PC98_HDM;
     } else if (path.extension() == ".ima") {
         return Format::DOS_144;
+    } else if (path.extension() == ".iso") {
+        return Format::ISO9660;
     }
     return Format::Auto;
+}
+
+Result<std::shared_ptr<Directory>> Filesystem::rootIso(std::filesystem::path /*path*/)
+{
+    return std::unexpected(Error("root: ISO9660 unimplemented"));
 }
 
 Result<std::shared_ptr<Directory>> Filesystem::root(std::filesystem::path path, Format format)
@@ -44,6 +51,9 @@ Result<std::shared_ptr<Directory>> Filesystem::root(std::filesystem::path path, 
     // open existing file
     if (format == Format::Auto) {
         format = formatFromPath(path);
+    }
+    if (format == Format::ISO9660) {
+        return rootIso(std::move(path)); // handle ISO9660 separately
     }
     auto info = formatInfo.find(format);
     if (info == formatInfo.end()) {
@@ -143,7 +153,7 @@ static inline void fatzero(fat *f, int table) {
         fatentryzero(root, index);
 }
 
-Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path, FileFormat format)
+Result<std::shared_ptr<Directory>> Filesystem::createFloppy(std::filesystem::path path, FileFormat format)
 {
     int rfd = open(path.c_str(), O_RDONLY);
     if (rfd != -1 || errno != ENOENT) {
@@ -262,11 +272,19 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
     return std::make_shared<FatDirectory>(std::make_shared<FatFat>(f));
 }
 
+Result<std::shared_ptr<Directory>> Filesystem::createIso(std::filesystem::path /*path*/)
+{
+    return std::unexpected(Error("create: ISO9660 unimplemented"));
+}
+
 Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path, Format format)
 {
     // create new file
     if (format == Format::Auto) {
         format = formatFromPath(path);
+    }
+    if (format == Format::ISO9660) {
+        return createIso(std::move(path)); // handle ISO9660 separately
     }
     auto infoIt = formatInfo.find(format);
     if (infoIt == formatInfo.end()) {
@@ -274,7 +292,7 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
     }
     const auto& info = infoIt->second;
 
-    auto result = create(path, info);
+    auto result = createFloppy(std::move(path), info);
     if (result.has_value() && format == Format::PC98_FDI) {
         // write 4k header
         // ### should ensure this is always little endian

@@ -10,7 +10,8 @@ enum class Format
     DOS_144,
     DOS_120,
     DOS_720,
-    DOS_360
+    DOS_360,
+    ISO9660
 };
 
 } // namespace flippin
