@@ -1,7 +1,7 @@
 #include "Slashes.h"
 #include <algorithm>
 
-namespace flippy {
+namespace flippin {
 
 std::string convertSlashes(std::string input)
 {
@@ -25,4 +25,4 @@ std::vector<std::string> convertSlashes(std::vector<std::string> input)
     return result;
 }
 
-} // namespace flippy
+} // namespace flippin

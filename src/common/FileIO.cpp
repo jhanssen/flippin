@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-namespace flippy {
+namespace flippin {
 namespace fileio {
 
 Result<std::vector<uint8_t>> read(const std::filesystem::path& path)
@@ -59,4 +59,4 @@ Result<void> write(const std::filesystem::path& path, const std::vector<uint8_t>
     return {};
 }
 
-}} // namespace flippy::file
+}} // namespace flippin::file

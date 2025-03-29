@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace flippy {
+namespace flippin {
 
 class Command
 {
@@ -27,4 +27,4 @@ inline Command::Command(std::string name)
 {
 }
 
-} // namespace flippy
+} // namespace flippin

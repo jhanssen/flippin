@@ -1,7 +1,7 @@
 #include "CreateCommand.h"
 #include <Filesystem.h>
 
-using namespace flippy;
+using namespace flippin;
 
 int CreateCommand::execute(std::filesystem::path path, Format format, std::vector<std::string> args)
 {

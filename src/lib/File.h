@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace flippy {
+namespace flippin {
 
 class Entry;
 class Directory;
@@ -35,4 +35,4 @@ private:
     friend class Directory;
 };
 
-} // namespace flippy
+} // namespace flippin

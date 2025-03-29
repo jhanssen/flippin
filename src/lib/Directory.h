@@ -7,7 +7,7 @@
 #include <memory>
 #include <vector>
 
-namespace flippy {
+namespace flippin {
 
 class Directory
 {
@@ -59,4 +59,4 @@ struct FlagTraits<Directory::OpenFileMode>
     static constexpr bool isBitmask = true;
 };
 
-} // namespace flippy
+} // namespace flippin

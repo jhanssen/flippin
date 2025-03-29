@@ -1,7 +1,7 @@
 #include "RdCommand.h"
 #include <Directory.h>
 
-using namespace flippy;
+using namespace flippin;
 
 int RdCommand::execute(std::filesystem::path path, Format format, std::vector<std::string> cargs)
 {

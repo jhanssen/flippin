@@ -7,7 +7,7 @@ extern "C" {
 #include <llfat.h>
 }
 
-namespace flippy {
+namespace flippin {
 
 static const std::unordered_map<Format, FileFormat> formatInfo = {
     { Format::PC98_FDI, { 4096, 1261568, 1024, 1,  8, 2, 77, 192 } },
@@ -303,4 +303,4 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
     return result;
 }
 
-} // namespace flippy
+} // namespace flippin

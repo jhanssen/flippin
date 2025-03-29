@@ -5,7 +5,7 @@
 #include <fmt/format.h>
 #include <fmt/std.h>
 
-namespace flippy {
+namespace flippin {
 
 class Error
 {
@@ -27,4 +27,4 @@ private:
     std::string mMessage;
 };
 
-} // namespace flippy
+} // namespace flippin

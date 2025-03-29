@@ -2,7 +2,7 @@
 #include <Directory.h>
 #include <File.h>
 
-using namespace flippy;
+using namespace flippin;
 
 int CatCommand::execute(std::filesystem::path path, Format format, std::vector<std::string> cargs)
 {

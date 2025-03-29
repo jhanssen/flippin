@@ -4,7 +4,7 @@
 #define ENTRYPOS(directory, index, pos)			\
     (fatunitgetdata((directory))[(index) * 32 + (pos)])
 
-namespace flippy {
+namespace flippin {
 
 FatDirectory::FatDirectory(std::shared_ptr<FatFat> fat)
     : mFat(std::move(fat)), mShort(u8"/")
@@ -625,4 +625,4 @@ const std::filesystem::path& FatDirectory::longPath() const
     return mLong.empty() ? mShort : mLong;
 }
 
-} // namespace flippy
+} // namespace flippin

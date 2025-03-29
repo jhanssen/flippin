@@ -1,7 +1,7 @@
 #include "Options.h"
 #include <cctype>
 
-using namespace flippy;
+using namespace flippin;
 
 Options::Options(const std::vector<std::string>& args, CaseSensitive sensitive)
 {

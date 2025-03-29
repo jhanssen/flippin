@@ -8,7 +8,7 @@ extern "C" {
 #include <llfat.h>
 }
 
-namespace flippy {
+namespace flippin {
 
 class Filesystem;
 
@@ -61,4 +61,4 @@ private:
     friend class Filesystem;
 };
 
-} // namespace flippy
+} // namespace flippin

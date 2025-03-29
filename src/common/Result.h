@@ -3,9 +3,9 @@
 #include "Error.h"
 #include <expected>
 
-namespace flippy {
+namespace flippin {
 
 template<typename T>
 using Result = std::expected<T, Error>;
 
-} // namespace flippy
+} // namespace flippin

@@ -20,7 +20,7 @@
 #include <tuple>
 #include <vector>
 
-using namespace flippy;
+using namespace flippin;
 
 /*
 template<typename... Args>
@@ -36,7 +36,7 @@ static std::vector<std::tuple<std::string, Format, std::string>> formats;
 
 static void syntax()
 {
-    fmt::print("Syntax: flippy [--fmt <format>] --img <image> --cmd <command> [command args...] [-- [extra command args...]]\n\n");
+    fmt::print("Syntax: flippin [--fmt <format>] --img <image> --cmd <command> [command args...] [-- [extra command args...]]\n\n");
     fmt::print("Commands:\n\n");
     for (const auto& cmd : commands) {
         const auto& syntax = cmd.second->syntax();
@@ -72,9 +72,9 @@ static void registerCommand(std::unique_ptr<Command> cmd)
 int main(int argc, char** argv, char** envp)
 {
     const auto args = ArgsParser::parse(
-        argc, argv, envp, "FLIPPY_",
+        argc, argv, envp, "FLIPPIN_",
         [](const char* msg, std::size_t off, char* arg) {
-            fmt::print(stderr, "Flippy: invalid argument, {} at {} in '{}'\n", msg, off, arg);
+            fmt::print(stderr, "Flippin: invalid argument, {} at {} in '{}'\n", msg, off, arg);
         });
 
     registerFormats();
@@ -93,21 +93,21 @@ int main(int argc, char** argv, char** envp)
 
     std::filesystem::path image = std::filesystem::path(args.value<std::string>("img"));
     if (image.empty()) {
-        fmt::print(stderr, "Flippy: missing image (--img <image>)\n");
+        fmt::print(stderr, "Flippin: missing image (--img <image>)\n");
         syntax();
         return 1;
     }
 
     const std::string& cmdname = args.value<std::string>("cmd");
     if (cmdname.empty()) {
-        fmt::print(stderr, "Flippy: missing command (--cmd <command>)\n");
+        fmt::print(stderr, "Flippin: missing command (--cmd <command>)\n");
         syntax();
         return 1;
     }
 
     const auto& cmd = commands.find(cmdname);
     if (cmd == commands.end()) {
-        fmt::print(stderr, "Flippy: unknown command '{}'\n", cmdname);
+        fmt::print(stderr, "Flippin: unknown command '{}'\n", cmdname);
         syntax();
         return 2;
     };
@@ -122,7 +122,7 @@ int main(int argc, char** argv, char** envp)
             }
         }
         if (format == Format::Auto) {
-            fmt::print(stderr, "Flippy: unknown format '{}'\n", fmtname);
+            fmt::print(stderr, "Flippin: unknown format '{}'\n", fmtname);
             syntax();
             return 3;
         }

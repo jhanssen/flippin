@@ -1,9 +1,9 @@
 #include "File.h"
 
-namespace flippy {
+namespace flippin {
 
 File::~File()
 {
 }
 
-} // namespace flippy
+} // namespace flippin

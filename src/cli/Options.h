@@ -4,7 +4,7 @@
 #include <vector>
 #include <cstddef>
 
-namespace flippy {
+namespace flippin {
 
 class Options
 {
@@ -31,4 +31,4 @@ inline bool Options::has(const char opt) const
     return mOptions.find(opt) != std::string::npos;
 }
 
-} // namespace flippy
+} // namespace flippin

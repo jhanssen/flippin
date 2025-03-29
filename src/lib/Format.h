@@ -1,6 +1,6 @@
 #pragma once
 
-namespace flippy {
+namespace flippin {
 
 enum class Format
 {
@@ -13,4 +13,4 @@ enum class Format
     DOS_360
 };
 
-} // namespace flippy
+} // namespace flippin

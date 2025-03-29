@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(flippy)
+project(flippin)
 
 if (ASAN)
     message(STATUS "AddressSanitizer enabled")

@@ -2,7 +2,7 @@
 
 // lifted from Vulkan-Hpp
 
-namespace flippy {
+namespace flippin {
 
 template <typename FlagBitsType>
 struct FlagTraits
@@ -147,4 +147,4 @@ inline constexpr Flags<BitType> operator~( BitType bit ) noexcept
     return ~( Flags<BitType>( bit ) );
 }
 
-} // namespace flippy
+} // namespace flippin

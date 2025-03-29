@@ -4,7 +4,7 @@
 #include <variant>
 #include <cassert>
 
-namespace flippy {
+namespace flippin {
 
 class File;
 class Directory;
@@ -68,4 +68,4 @@ inline std::shared_ptr<Directory> Entry::acquireDirectory()
     return std::move(std::get<std::shared_ptr<Directory>>(mEntry));
 }
 
-} // namespace flippy
+} // namespace flippin

@@ -1,7 +1,7 @@
 #include "FatFile.h"
 #include <cassert>
 
-namespace flippy {
+namespace flippin {
 
 FatFile::FatFile(std::shared_ptr<FatFat> fat, std::filesystem::path shortp, std::filesystem::path longp, unit* directory, int index)
     : mFat(std::move(fat)), mShort(std::move(shortp)), mLong(std::move(longp)), mDirectory(directory), mIndex(index)
@@ -194,4 +194,4 @@ Result<void> FatFile::close()
     return {};
 }
 
-} // namespace flippy
+} // namespace flippin

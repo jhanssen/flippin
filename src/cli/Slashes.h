@@ -1,9 +1,9 @@
 #include <string>
 #include <vector>
 
-namespace flippy {
+namespace flippin {
 
 std::string convertSlashes(std::string input);
 std::vector<std::string> convertSlashes(std::vector<std::string> input);
 
-} // namespace flippy
+} // namespace flippin

@@ -5,7 +5,7 @@ extern "C" {
 #include <llfat.h>
 }
 
-namespace flippy {
+namespace flippin {
 
 struct FatFat
 {
@@ -23,4 +23,4 @@ struct FatFat
     fat* f;
 };
 
-} // namespace flippy
+} // namespace flippin

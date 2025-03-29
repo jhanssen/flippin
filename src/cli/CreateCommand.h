@@ -2,7 +2,7 @@
 
 #include "Command.h"
 
-namespace flippy {
+namespace flippin {
 
 class CreateCommand : public Command
 {
@@ -14,4 +14,4 @@ public:
     virtual std::vector<std::string> syntax() const override;
 };
 
-} // namespace flippy
+} // namespace flippin

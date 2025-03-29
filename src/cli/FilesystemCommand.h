@@ -3,7 +3,7 @@
 #include "Command.h"
 #include <Filesystem.h>
 
-namespace flippy {
+namespace flippin {
 
 class FilesystemCommand : public Command
 {
@@ -32,4 +32,4 @@ inline const std::vector<std::string>& FilesystemCommand::args() const
     return mArgs;
 }
 
-} // namespace flippy
+} // namespace flippin

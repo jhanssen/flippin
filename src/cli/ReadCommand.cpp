@@ -3,7 +3,7 @@
 #include <File.h>
 #include <FileIO.h>
 
-using namespace flippy;
+using namespace flippin;
 
 int ReadCommand::execute(std::filesystem::path path, Format format, std::vector<std::string> cargs)
 {

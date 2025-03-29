@@ -6,7 +6,7 @@
 #include <memory>
 #include <cstddef>
 
-namespace flippy {
+namespace flippin {
 
 class Directory;
 
@@ -34,4 +34,4 @@ private:
     Filesystem() { }
 };
 
-} // namespace flippy
+} // namespace flippin

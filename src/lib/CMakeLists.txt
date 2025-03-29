@@ -7,12 +7,12 @@ set(SOURCES
     Filesystem.cpp
 )
 
-add_library(flippy_lib STATIC ${SOURCES})
-add_library(Flippy::Lib ALIAS flippy_lib)
-target_include_directories(flippy_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-target_link_libraries(flippy_lib PRIVATE Flippy::Common llfat fmt::fmt)
+add_library(flippin_lib STATIC ${SOURCES})
+add_library(Flippin::Lib ALIAS flippin_lib)
+target_include_directories(flippin_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_link_libraries(flippin_lib PRIVATE Flippin::Common llfat fmt::fmt)
 
-target_compile_options(flippy_lib PRIVATE
+target_compile_options(flippin_lib PRIVATE
   $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
   $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
 )

@@ -5,10 +5,10 @@
 #include <vector>
 #include <cstdint>
 
-namespace flippy {
+namespace flippin {
 namespace fileio {
 
 Result<std::vector<uint8_t>> read(const std::filesystem::path& path);
 Result<void> write(const std::filesystem::path& path, const std::vector<uint8_t>& data);
 
-}} //namespace flippy::file
+}} //namespace flippin::file

@@ -1,9 +1,9 @@
 #include "Directory.h"
 
-namespace flippy {
+namespace flippin {
 
 Directory::~Directory()
 {
 }
 
-} // namespace flippy
+} // namespace flippin

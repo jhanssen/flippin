@@ -2,7 +2,7 @@
 #include "Options.h"
 #include <Directory.h>
 
-using namespace flippy;
+using namespace flippin;
 
 int MdCommand::execute(std::filesystem::path path, Format format, std::vector<std::string> cargs)
 {
