@@ -3,6 +3,7 @@
 #include "Directory.h"
 #include "FatFat.h"
 #include <memory>
+#include <string>
 #include <cstdint>
 extern "C" {
 #include <llfat.h>
@@ -36,8 +37,8 @@ private:
 
 private:
     std::vector<Entry> buildEntries(unit* startDir, int startIndex) const;
-    Result<void> mdShort(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists);
-    Result<void> mdLong(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists);
+    Result<void> mdShort(const std::string& currentPath, const std::string& name, bool failIfExists);
+    Result<void> mdLong(const std::wstring& currentPath, const std::wstring& name, bool failIfExists);
     Result<void> mdFinalize(unit* dir, int index, int32_t target);
     Result<void> del(unit* dir, int index, unit* longdir = nullptr, int longindex = 0);
 
