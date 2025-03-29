@@ -1,4 +1,5 @@
 #include "Utf8.h"
+#include <cstring>
 #include <iconv.h>
 
 namespace flippin {
