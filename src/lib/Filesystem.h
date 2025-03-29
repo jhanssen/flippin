@@ -26,6 +26,9 @@ struct FileFormat
 class Filesystem
 {
 public:
+    static void init();
+    static void deinit();
+
     static Result<std::shared_ptr<Directory>> root(std::filesystem::path path, Format format = Format::Auto);
 
     static Result<std::shared_ptr<Directory>> create(std::filesystem::path path, Format format = Format::Auto);

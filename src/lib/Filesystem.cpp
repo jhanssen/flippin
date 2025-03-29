@@ -1,5 +1,6 @@
 #include "Filesystem.h"
 #include "FatDirectory.h"
+#include "Utf8.h"
 #include <unordered_map>
 #include <fcntl.h>
 #include <unistd.h>
@@ -319,6 +320,16 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
     }
 
     return result;
+}
+
+void Filesystem::init()
+{
+    utf8::initialize();
+}
+
+void Filesystem::deinit()
+{
+    utf8::finalize();
 }
 
 } // namespace flippin

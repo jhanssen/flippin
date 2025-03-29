@@ -1,5 +1,6 @@
 #include "FatDirectory.h"
 #include "FatFile.h"
+#include "Utf8.h"
 
 #define ENTRYPOS(directory, index, pos)			\
     (fatunitgetdata((directory))[(index) * 32 + (pos)])
@@ -79,7 +80,7 @@ std::vector<Entry> FatDirectory::buildEntries(unit* startDir, int startIndex) co
     unit* dir = startDir;
     unit* longdir;
     int longindex;
-    char* name;
+    wchar_t* name;
     int res;
 
     for (index = startIndex; (res = fatlongnext(mFat->f, &dir, &index, &longdir, &longindex, &name)) != FAT_END; fatnextentry(mFat->f, &dir, &index)) {
@@ -124,7 +125,7 @@ Result<std::vector<Entry>> FatDirectory::dir() const
     return buildEntries(mDirectory, mIndex);
 }
 
-Result<void> FatDirectory::mdShort(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists)
+Result<void> FatDirectory::mdShort(const std::string& currentPath, const std::string& name, bool failIfExists)
 {
     unit* dir;
     int index;
@@ -163,12 +164,12 @@ Result<void> FatDirectory::mdShort(const std::filesystem::path& currentPath, con
     return ret;
 }
 
-Result<void> FatDirectory::mdLong(const std::filesystem::path& currentPath, const std::filesystem::path& name, bool failIfExists)
+Result<void> FatDirectory::mdLong(const std::wstring& currentPath, const std::wstring& name, bool failIfExists)
 {
     unit* dir;
     int index;
 
-    char* npath;
+    wchar_t* npath;
     if (!currentPath.empty()) {
         npath = fatstoragepathlong(currentPath.c_str());
         if (fatlookuppathlong(mFat->f, mTarget, npath, &dir, &index) != 0) {
@@ -236,23 +237,27 @@ Result<void> FatDirectory::md(std::filesystem::path name, Recursive recursive)
     }
 
     char* npath;
+    wchar_t* wpath;
     // first, check if each part of the path is valid
-    std::vector<std::pair<std::filesystem::path, bool>> parts;
+    std::vector<std::pair<std::variant<std::string, std::wstring>, bool>> parts;
     bool isLong = false;
     for (const auto& part : name) {
         if (fatinvalidname(part.c_str()) == 0) {
             // valid short
             npath = fatstoragename(part.c_str());
-            parts.push_back({std::filesystem::path(npath), isLong});
-            free(npath);
-        } else if (fatinvalidnamelong(part.c_str()) == 0) {
-            npath = fatstoragenamelong(part.c_str());
-            // valid long
-            isLong = true;
-            parts.push_back({std::filesystem::path(npath), true});
+            parts.push_back({{std::string(npath)}, isLong});
             free(npath);
         } else {
-            return std::unexpected(Error("md: Invalid directory name"));
+            const auto wpart = utf8::utf8ToWchar(part.string());
+            if (fatinvalidnamelong(wpart.c_str()) == 0) {
+                wpath = fatstoragenamelong(wpart.c_str());
+                // valid long
+                isLong = true;
+                parts.push_back({{std::wstring(wpath)}, true});
+                free(wpath);
+            } else {
+                return std::unexpected(Error("md: Invalid directory name"));
+            }
         }
     }
 
@@ -260,25 +265,44 @@ Result<void> FatDirectory::md(std::filesystem::path name, Recursive recursive)
         return std::unexpected(Error("md: Recursive is required for multiple md parts"));
     }
 
-    std::filesystem::path currentPath;
+    std::string currentPath;
+    std::wstring currentWPath;
     std::size_t idx = 0;
     const std::size_t size = parts.size();
     for (const auto& part : parts) {
         const bool failIfExists = (idx == size - 1) ? true : false;
         if (part.second) {
+            if (!currentPath.empty()) {
+                currentWPath = utf8::utf8ToWchar(currentPath);
+                currentPath = {};
+            }
+
             // long name
-            auto result = mdLong(currentPath, part.first, failIfExists);
+            auto result = mdLong(currentWPath, std::get<std::wstring>(part.first), failIfExists);
             if (!result) {
                 return result;
+            }
+            if (currentWPath.empty()) {
+                currentWPath = std::get<std::wstring>(part.first);
+            } else {
+                currentWPath += L'/';
+                currentWPath += std::get<std::wstring>(part.first);
             }
         } else {
             // short name
-            auto result = mdShort(currentPath, part.first, failIfExists);
+            assert(currentWPath.empty());
+
+            auto result = mdShort(currentPath, std::get<std::string>(part.first), failIfExists);
             if (!result) {
                 return result;
             }
+            if (currentPath.empty()) {
+                currentPath = std::get<std::string>(part.first);
+            } else {
+                currentPath += '/';
+                currentPath += std::get<std::string>(part.first);
+            }
         }
-        currentPath /= part.first;
         ++idx;
     }
 
@@ -287,7 +311,8 @@ Result<void> FatDirectory::md(std::filesystem::path name, Recursive recursive)
 
 Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path name, OpenFileMode mode, Recursive lookInSubDirs, const char* descr)
 {
-    char* npath;
+    char* npath = nullptr;
+    wchar_t* wpath = nullptr;
     unit* dir = mDirectory;
     int index = mIndex;
     unit* longdir = nullptr;
@@ -297,8 +322,8 @@ Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path nam
     struct {
         int(*invalidshort)(const char*);
         int(*lookupshort)(fat*, int32_t, const char*, unit**, int*);
-        int(*invalidlong)(const char*);
-        int(*lookuplong)(fat*, int32_t, char*, unit**, int*, unit**, int*);
+        int(*invalidlong)(const wchar_t*);
+        int(*lookuplong)(fat*, int32_t, wchar_t*, unit**, int*, unit**, int*);
     } ptrs;
 
     if (lookInSubDirs == Recursive::No) {
@@ -323,36 +348,44 @@ Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path nam
             // file does not exist, create if allowed
             if (mode & OpenFileMode::Create) {
                 if (fatcreatefile(mFat->f, target, npath, &dir, &index) != 0) {
+                    free(npath);
                     return std::unexpected(Error("{}: Failed to create file: {}", descr, name));
                 }
                 fatreferencesettarget(mFat->f, dir, index, 0, FAT_UNUSED);
                 fatentrysetattributes(dir, index, 0x20);
                 created = true;
             } else {
+                free(npath);
                 return std::unexpected(Error("{}: File does not exist: {}", descr, name));
             }
         }
-    } else if (ptrs.invalidlong(name.c_str()) == 0) {
-        // long file name
-
-        const auto target = dir->n;
-        npath = fatstoragepathlong(name.c_str());
-        // does the path already exist
-        if (ptrs.lookuplong(mFat->f, target, npath, &dir, &index, &longdir, &longindex) != 0) {
-            // file does not exist, create if mode is write
-            if (mode & OpenFileMode::Create) {
-                if (fatcreatefilepathlongboth(mFat->f, target, npath, &dir, &index, &longdir, &longindex) != 0) {
-                    return std::unexpected(Error("{}: Failed to create file: {}", descr, name));
-                }
-                fatreferencesettarget(mFat->f, dir, index, 0, FAT_UNUSED);
-                fatentrysetattributes(dir, index, 0x20);
-                created = isLong = true;
-            } else {
-                return std::unexpected(Error("{}: File does not exist: {}", descr, name));
-            }
-        }
+        free(npath);
     } else {
-        return std::unexpected(Error("{}: Invalid file name: {}", descr, name));
+        const auto wname = utf8::utf8ToWchar(name.string());
+        if (ptrs.invalidlong(wname.c_str()) == 0) {
+            // long file name
+
+            const auto target = dir->n;
+            wpath = fatstoragepathlong(wname.c_str());
+            // does the path already exist
+            if (ptrs.lookuplong(mFat->f, target, wpath, &dir, &index, &longdir, &longindex) != 0) {
+                // file does not exist, create if mode is write
+                if (mode & OpenFileMode::Create) {
+                    if (fatcreatefilepathlongboth(mFat->f, target, wpath, &dir, &index, &longdir, &longindex) != 0) {
+                        free(wpath);
+                        return std::unexpected(Error("{}: Failed to create file: {}", descr, name));
+                    }
+                    fatreferencesettarget(mFat->f, dir, index, 0, FAT_UNUSED);
+                    fatentrysetattributes(dir, index, 0x20);
+                    created = isLong = true;
+                } else {
+                    free(wpath);
+                    return std::unexpected(Error("{}: File does not exist: {}", descr, name));
+                }
+            }
+        } else {
+            return std::unexpected(Error("{}: Invalid file name: {}", descr, name));
+        }
     }
 
     std::filesystem::path shortname, longname;
@@ -362,15 +395,16 @@ Result<FatDirectory::FatEntry> FatDirectory::openEntry(std::filesystem::path nam
     shortname = shortnamebuf;
 
     if (isLong) {
-        longname = npath;
+        assert(wpath != nullptr);
+        longname = wpath;
     } else {
-        free(npath);
-        int res = fatlongnext(mFat->f, &dir, &index, &longdir, &longindex, &npath);
+        assert(wpath == nullptr);
+        int res = fatlongnext(mFat->f, &dir, &index, &longdir, &longindex, &wpath);
         if (res & FAT_LONG_ALL) {
-            longname = npath;
+            longname = wpath;
         }
     }
-    free(npath);
+    free(wpath);
 
     if (longdir == nullptr) {
         longdir = dir;

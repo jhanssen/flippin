@@ -11,6 +11,7 @@
 #include "RenCommand.h"
 #include "WriteCommand.h"
 #include "Slashes.h"
+#include <Filesystem.h>
 #include <Args.h>
 #include <Format.h>
 #include <fmt/format.h>
@@ -128,5 +129,11 @@ int main(int argc, char** argv, char** envp)
         }
     }
 
-    return cmd->second->execute(std::move(image), format, convertSlashes(args.freeforms()));
+    Filesystem::init();
+
+    const int ret = cmd->second->execute(std::move(image), format, convertSlashes(args.freeforms()));
+
+    Filesystem::deinit();
+
+    return ret;
 }
