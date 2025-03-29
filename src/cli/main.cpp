@@ -61,7 +61,8 @@ static void registerFormats()
         { "144M", Format::DOS_144, "DOS 1.44M" },
         { "120M", Format::DOS_120, "DOS 1.20M" },
         { "720K", Format::DOS_720, "DOS 720K" },
-        { "360K", Format::DOS_360, "DOS 360K" }
+        { "360K", Format::DOS_360, "DOS 360K" },
+        { "ISO", Format::ISO9660, "ISO 9660" }
     };
 }
 
