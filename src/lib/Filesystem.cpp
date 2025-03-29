@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <fcntl.h>
 #include <unistd.h>
+#include <libisofs.h>
 extern "C" {
 #include <llfat.h>
 }
@@ -325,10 +326,12 @@ Result<std::shared_ptr<Directory>> Filesystem::create(std::filesystem::path path
 void Filesystem::init()
 {
     utf8::initialize();
+    iso_init();
 }
 
 void Filesystem::deinit()
 {
+    iso_finish();
     utf8::finalize();
 }
 
