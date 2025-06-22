@@ -1,10 +1,10 @@
-#include "CatCommand.h"
+#include "TypeCommand.h"
 #include <Directory.h>
 #include <File.h>
 
 using namespace flippin;
 
-int CatCommand::execute(std::filesystem::path path, Format format, std::vector<std::string> cargs)
+int TypeCommand::execute(std::filesystem::path path, Format format, std::vector<std::string> cargs)
 {
     const int fexecute = FilesystemCommand::execute(std::move(path), format, std::move(cargs));
     if (fexecute != 0) {
@@ -37,10 +37,10 @@ int CatCommand::execute(std::filesystem::path path, Format format, std::vector<s
     return 0;
 }
 
-std::vector<std::string> CatCommand::syntax() const
+std::vector<std::string> TypeCommand::syntax() const
 {
     return {
-        "cat <source>",
-        "  Cats a file inside of the image"
+        "type <source>",
+        "  Prints a file inside of the image to the console"
     };
 }

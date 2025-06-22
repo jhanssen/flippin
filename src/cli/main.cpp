@@ -1,5 +1,4 @@
 #include "Command.h"
-#include "CatCommand.h"
 #include "CopyCommand.h"
 #include "CreateCommand.h"
 #include "DelCommand.h"
@@ -9,6 +8,7 @@
 #include "RdCommand.h"
 #include "ReadCommand.h"
 #include "RenCommand.h"
+#include "TypeCommand.h"
 #include "WriteCommand.h"
 #include "Slashes.h"
 #include <Filesystem.h>
@@ -80,7 +80,6 @@ int main(int argc, char** argv, char** envp)
 
     registerFormats();
 
-    registerCommand(std::make_unique<CatCommand>());
     registerCommand(std::make_unique<CopyCommand>());
     registerCommand(std::make_unique<CreateCommand>());
     registerCommand(std::make_unique<DelCommand>());
@@ -90,6 +89,7 @@ int main(int argc, char** argv, char** envp)
     registerCommand(std::make_unique<RdCommand>());
     registerCommand(std::make_unique<ReadCommand>());
     registerCommand(std::make_unique<RenCommand>());
+    registerCommand(std::make_unique<TypeCommand>());
     registerCommand(std::make_unique<WriteCommand>());
 
     std::filesystem::path image = std::filesystem::path(args.value<std::string>("img"));

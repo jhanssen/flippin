@@ -4,11 +4,11 @@
 
 namespace flippin {
 
-class CatCommand : public FilesystemCommand
+class TypeCommand : public FilesystemCommand
 {
 public:
-    CatCommand() : FilesystemCommand("cat") {}
-    virtual ~CatCommand() override {}
+    TypeCommand() : FilesystemCommand("type") {}
+    virtual ~TypeCommand() override {}
 
     virtual int execute(std::filesystem::path path, Format format, std::vector<std::string> args) override;
     virtual std::vector<std::string> syntax() const override;

@@ -1,6 +1,5 @@
 set(SOURCES
     main.cpp
-    CatCommand.cpp
     CopyCommand.cpp
     CreateCommand.cpp
     DelCommand.cpp
@@ -11,6 +10,7 @@ set(SOURCES
     RdCommand.cpp
     ReadCommand.cpp
     RenCommand.cpp
+    TypeCommand.cpp
     WriteCommand.cpp
     Options.cpp
     Slashes.cpp
